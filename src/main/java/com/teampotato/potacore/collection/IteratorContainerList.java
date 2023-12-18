@@ -16,14 +16,7 @@ public class IteratorContainerList<E> implements List<E> {
     public volatile boolean listValidated;
 
     public IteratorContainerList(@NotNull Iterable<E> iterable) {
-        Iterator<E> iterator = iterable.iterator();
-        this.iterator = iterator;
-        this.iteratorCopySource = new Iterable<E>() {
-            @Override
-            public @NotNull Iterator<E> iterator() {
-                return iterator;
-            }
-        };
+        this(iterable.iterator());
     }
 
     public IteratorContainerList(@NotNull Iterator<E> iterator) {

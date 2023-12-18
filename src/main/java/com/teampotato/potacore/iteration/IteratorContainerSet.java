@@ -1,6 +1,5 @@
 package com.teampotato.potacore.iteration;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -9,15 +8,19 @@ import java.util.function.Consumer;
 @SuppressWarnings("unused")
 public class IteratorContainerSet<E> implements Set<E> {
     public Iterator<E> iterator;
-    public Iterable<E> iteratorCopy;
+    public Iterable<E> iteratorCopySource;
 
-    public final ObjectOpenHashSet<E> iteratorSet = new ObjectOpenHashSet<>();
+    public final Set<E> iteratorSet;
 
     public volatile boolean setValidated;
 
-    public IteratorContainerSet(@NotNull Iterator<E> iterator) {
+    /**
+     * @param iteratorSet should be empty. Recommendation: new {@link it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet}<>() or new {@link it.unimi.dsi.fastutil.objects.ObjectOpenHashSet}<>()
+     **/
+    public IteratorContainerSet(@NotNull Iterator<E> iterator, Set<E> iteratorSet) {
         this.iterator = iterator;
-        this.iteratorCopy = new Iterable<E>() {
+        this.iteratorSet = iteratorSet;
+        this.iteratorCopySource = new Iterable<E>() {
             public @NotNull Iterator<E> iterator() {
                 return iterator;
             }
@@ -25,10 +28,12 @@ public class IteratorContainerSet<E> implements Set<E> {
     }
 
     public boolean hasNext() {
+        if (this.setValidated) throw new UnsupportedOperationException();
         return this.iterator.hasNext();
     }
 
     public E next() {
+        if (this.setValidated) throw new UnsupportedOperationException();
         return this.iterator.next();
     }
 
@@ -57,7 +62,7 @@ public class IteratorContainerSet<E> implements Set<E> {
             }
         }
         this.iterator = Collections.emptyIterator();
-        this.iteratorCopy = Collections::emptyIterator;
+        this.iteratorCopySource = Collections::emptyIterator;
     }
 
     public static <T> IteratorContainerSet<T> cast(Set<T> set) {
@@ -67,7 +72,7 @@ public class IteratorContainerSet<E> implements Set<E> {
     @Override
     public @NotNull Iterator<E> iterator() {
         if (this.setValidated) return this.iteratorSet.iterator();
-        return this.iteratorCopy.iterator();
+        return this.iteratorCopySource.iterator();
     }
 
     @Override
@@ -80,13 +85,7 @@ public class IteratorContainerSet<E> implements Set<E> {
     public void clear() {
         this.iteratorSet.clear();
         this.iterator = Collections.emptyIterator();
-        this.iteratorCopy = Collections::emptyIterator;
-    }
-
-    public void trim() {
-        this.iteratorSet.trim();
-        this.iterator = Collections.emptyIterator();
-        this.iteratorCopy = Collections::emptyIterator;
+        this.iteratorCopySource = Collections::emptyIterator;
     }
 
     @Override

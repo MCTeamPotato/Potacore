@@ -19,6 +19,7 @@ public class IteratorContainerSet<E> implements Set<E>, Iterable<E>, Iterator<E>
         Iterator<E> iterator = iterable.iterator();
         this.iterator = iterator;
         this.iteratorCopySource = new Iterable<E>() {
+            @Override
             public @NotNull Iterator<E> iterator() {
                 return iterator;
             }
@@ -28,6 +29,7 @@ public class IteratorContainerSet<E> implements Set<E>, Iterable<E>, Iterator<E>
     public IteratorContainerSet(@NotNull Iterator<E> iterator) {
         this.iterator = iterator;
         this.iteratorCopySource = new Iterable<E>() {
+            @Override
             public @NotNull Iterator<E> iterator() {
                 return iterator;
             }
@@ -44,14 +46,13 @@ public class IteratorContainerSet<E> implements Set<E>, Iterable<E>, Iterator<E>
         return this.iterator.next();
     }
 
-    public void remove() {
-        throw new UnsupportedOperationException();
-    }
-
+    @Override
     public Spliterator<E> spliterator() {
+        if (this.setValidated) return Spliterators.spliterator(this.iteratorSet, Spliterator.DISTINCT);
         return Spliterators.spliteratorUnknownSize(this.iterator(), 0);
     }
 
+    @Override
     public void forEach(Consumer<? super E> action) {
         if (!this.setValidated) {
             while (this.hasNext()) action.accept(this.next());

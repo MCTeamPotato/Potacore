@@ -1,5 +1,6 @@
 package com.teampotato.potacore.iteration;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -10,16 +11,12 @@ public class IteratorContainerSet<E> implements Set<E> {
     public Iterator<E> iterator;
     public Iterable<E> iteratorCopySource;
 
-    public final Set<E> iteratorSet;
+    public final Set<E> iteratorSet = new ObjectOpenHashSet<>();
 
     public volatile boolean setValidated;
 
-    /**
-     * @param iteratorSet should be empty. Recommendation: new {@link it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet}<>() or new {@link it.unimi.dsi.fastutil.objects.ObjectOpenHashSet}<>()
-     **/
-    public IteratorContainerSet(@NotNull Iterator<E> iterator, Set<E> iteratorSet) {
+    public IteratorContainerSet(@NotNull Iterator<E> iterator) {
         this.iterator = iterator;
-        this.iteratorSet = iteratorSet;
         this.iteratorCopySource = new Iterable<E>() {
             public @NotNull Iterator<E> iterator() {
                 return iterator;

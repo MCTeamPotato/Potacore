@@ -1,4 +1,4 @@
-package com.teampotato.potacore.iteration;
+package com.teampotato.potacore.collection;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -7,11 +7,11 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
-public class IteratorContainerSet<E> implements Set<E>, Iterable<E>, Iterator<E> {
+public class IteratorContainerSet<E> implements Set<E> {
     public Iterator<E> iterator;
     public Iterable<E> iteratorCopySource;
 
-    public final Set<E> iteratorSet = new ObjectOpenHashSet<>();
+    public final ObjectOpenHashSet<E> iteratorSet = new ObjectOpenHashSet<>();
 
     public volatile boolean setValidated;
 
@@ -36,16 +36,6 @@ public class IteratorContainerSet<E> implements Set<E>, Iterable<E>, Iterator<E>
         };
     }
 
-    public boolean hasNext() {
-        if (this.setValidated) throw new UnsupportedOperationException();
-        return this.iterator.hasNext();
-    }
-
-    public E next() {
-        if (this.setValidated) throw new UnsupportedOperationException();
-        return this.iterator.next();
-    }
-
     @Override
     public Spliterator<E> spliterator() {
         if (this.setValidated) return Spliterators.spliterator(this.iteratorSet, Spliterator.DISTINCT);
@@ -55,7 +45,7 @@ public class IteratorContainerSet<E> implements Set<E>, Iterable<E>, Iterator<E>
     @Override
     public void forEach(Consumer<? super E> action) {
         if (!this.setValidated) {
-            while (this.hasNext()) action.accept(this.next());
+            while (this.iterator.hasNext()) action.accept(this.iterator.next());
         } else {
             this.iteratorSet.forEach(action);
         }

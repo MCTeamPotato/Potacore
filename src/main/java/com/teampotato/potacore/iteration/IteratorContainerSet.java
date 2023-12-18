@@ -15,8 +15,8 @@ public class IteratorContainerSet<E> implements Set<E> {
 
     public volatile boolean setValidated;
 
-    public IteratorContainerSet(@NotNull Collection<E> collection) {
-        Iterator<E> iterator = collection.iterator();
+    public IteratorContainerSet(@NotNull Iterable<E> iterable) {
+        Iterator<E> iterator = iterable.iterator();
         this.iterator = iterator;
         this.iteratorCopySource = new Iterable<E>() {
             public @NotNull Iterator<E> iterator() {

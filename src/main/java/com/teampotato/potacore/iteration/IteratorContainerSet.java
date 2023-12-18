@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
-public class IteratorContainerSet<E> implements Set<E>, Iterable<E> {
+public class IteratorContainerSet<E> implements Set<E>, Iterable<E>, Iterator<E> {
     public Iterator<E> iterator;
     public Iterable<E> iteratorCopySource;
 

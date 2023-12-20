@@ -1,2 +1,2 @@
-# 0.0.2
-Remake IteratorContainerList and IteratorContainerSet, fix bugs and make them thread-safe.
+# 0.0.3
+Validate set on IteratorContainerSet#iterator method call because it needs to maintain the uniqueness of elements.

@@ -19,6 +19,7 @@ public class MergedIterator<T> implements Iterator<T> {
     public MergedIterator(@NotNull Iterable<T> iterable1, @NotNull Iterable<T> iterable2) {
         this.iterator1 = iterable1.iterator();
         this.iterator2 = iterable2.iterator();
+        this.useIterator1 = true;
     }
 
     @Override

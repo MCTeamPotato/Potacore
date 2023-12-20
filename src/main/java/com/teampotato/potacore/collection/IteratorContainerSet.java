@@ -3,142 +3,154 @@ package com.teampotato.potacore.collection;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
+@ThreadSafe
 @SuppressWarnings("unused")
 public class IteratorContainerSet<E> implements Set<E> {
-    public Iterator<E> iterator;
-    public Iterable<E> iteratorCopySource;
-
-    public final ObjectOpenHashSet<E> iteratorSet = new ObjectOpenHashSet<>();
-
-    public volatile boolean setValidated;
+    private final AtomicReference<Iterable<E>> iterable = new AtomicReference<>();
+    private final AtomicBoolean validated = new AtomicBoolean();
+    private final Set<E> set;
 
     public IteratorContainerSet(@NotNull Iterable<E> iterable) {
-        this(iterable.iterator());
+        this.iterable.set(iterable);
+        this.set = new ObjectOpenHashSet<>();
     }
 
-    public IteratorContainerSet(@NotNull Iterator<E> iterator) {
-        this.iterator = iterator;
-        this.iteratorCopySource = new Iterable<E>() {
-            @Override
-            public @NotNull Iterator<E> iterator() {
-                return iterator;
-            }
-        };
-    }
-
-    @Override
-    public Spliterator<E> spliterator() {
-        if (this.setValidated) return Spliterators.spliterator(this.iteratorSet, Spliterator.DISTINCT);
-        return Spliterators.spliteratorUnknownSize(this.iterator(), 0);
-    }
-
-    @Override
-    public void forEach(Consumer<? super E> action) {
-        if (!this.setValidated) {
-            while (this.iterator.hasNext()) action.accept(this.iterator.next());
-        } else {
-            this.iteratorSet.forEach(action);
+    private void validateSet() {
+        if (this.validated.get()) return;
+        this.validated.set(true);
+        synchronized (this.set) {
+            if (!this.set.isEmpty()) throw new ConcurrentModificationException("The set field in IteratorContainerSet cannot be modified before validation.");
+            this.iterable.get().forEach(this.set::add);
+            this.iterable.set(null);
         }
-    }
-
-    public void validateSet() {
-        if (this.setValidated) return;
-        this.setValidated = true;
-        synchronized (this.iteratorSet) {
-            while (this.iterator.hasNext()) {
-                this.iteratorSet.add(this.iterator.next());
-            }
-        }
-        this.iterator = Collections.emptyIterator();
-        this.iteratorCopySource = Collections::emptyIterator;
-    }
-
-    public static <T> IteratorContainerSet<T> cast(Set<T> set) {
-        return (IteratorContainerSet<T>) set;
-    }
-
-    @Override
-    public @NotNull Iterator<E> iterator() {
-        if (this.setValidated) return this.iteratorSet.iterator();
-        return this.iteratorCopySource.iterator();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        if (this.setValidated) return this.iteratorSet.isEmpty();
-        return this.iterator.hasNext();
-    }
-
-    @Override
-    public void clear() {
-        this.iteratorSet.clear();
-        this.iterator = Collections.emptyIterator();
-        this.iteratorCopySource = Collections::emptyIterator;
     }
 
     @Override
     public int size() {
         this.validateSet();
-        return this.iteratorSet.size();
+        synchronized (this.set) {
+            return this.set.size();
+        }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        if (this.validated.get()) {
+            synchronized (this.set) {
+                return this.set.isEmpty();
+            }
+        } else {
+            return this.iterable.get().iterator().hasNext();
+        }
     }
 
     @Override
     public boolean contains(Object o) {
         this.validateSet();
-        return this.iteratorSet.contains(o);
+        synchronized (this.set) {
+            return this.set.contains(o);
+        }
     }
 
+    @NotNull
+    @Override
+    public Iterator<E> iterator() {
+        if (this.validated.get()) {
+            synchronized (this.set) {
+                return this.set.iterator();
+            }
+        } else {
+            return this.iterable.get().iterator();
+        }
+    }
 
     @NotNull
     @Override
     public Object @NotNull [] toArray() {
         this.validateSet();
-        return this.iteratorSet.toArray();
+        synchronized (this.set) {
+            return this.set.toArray();
+        }
     }
 
     @NotNull
     @Override
-    public <T> T @NotNull [] toArray(T @NotNull[] a) {
+    public <T> T @NotNull [] toArray(T @NotNull [] a) {
         this.validateSet();
-        return this.iteratorSet.toArray(a);
+        synchronized (this.set) {
+            return this.set.toArray(a);
+        }
     }
 
     @Override
     public boolean add(E e) {
         this.validateSet();
-        return this.iteratorSet.add(e);
+        synchronized (this.set) {
+            return this.set.add(e);
+        }
     }
 
     @Override
     public boolean remove(Object o) {
         this.validateSet();
-        return this.iteratorSet.remove(o);
+        synchronized (this.set) {
+            return this.set.remove(o);
+        }
     }
 
     @Override
     public boolean containsAll(@NotNull Collection<?> c) {
         this.validateSet();
-        return this.iteratorSet.containsAll(c);
+        synchronized (this.set) {
+            return this.set.containsAll(c);
+        }
     }
 
     @Override
     public boolean addAll(@NotNull Collection<? extends E> c) {
         this.validateSet();
-        return this.iteratorSet.addAll(c);
+        synchronized (this.set) {
+            return this.set.addAll(c);
+        }
     }
 
     @Override
     public boolean removeAll(@NotNull Collection<?> c) {
         this.validateSet();
-        return this.iteratorSet.removeAll(c);
+        synchronized (this.set) {
+            return this.set.removeAll(c);
+        }
     }
 
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
         this.validateSet();
-        return this.iteratorSet.retainAll(c);
+        synchronized (this.set) {
+            return this.set.retainAll(c);
+        }
+    }
+
+    @Override
+    public void clear() {
+        this.iterable.set(null);
+        synchronized (this.set) {
+            this.set.clear();
+        }
+    }
+
+    @Override
+    public Spliterator<E> spliterator() {
+        if (this.validated.get()) {
+            synchronized (this.set) {
+                return this.set.spliterator();
+            }
+        } else {
+            return this.iterable.get().spliterator();
+        }
     }
 }

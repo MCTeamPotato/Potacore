@@ -60,12 +60,9 @@ public class IteratorContainerSet<E> implements Set<E> {
     @NotNull
     @Override
     public Iterator<E> iterator() {
-        if (this.validated.get()) {
-            synchronized (this.set) {
-                return this.set.iterator();
-            }
-        } else {
-            return this.iterable.get().iterator();
+        this.validateSet();
+        synchronized (this.set) {
+            return this.set.iterator();
         }
     }
 

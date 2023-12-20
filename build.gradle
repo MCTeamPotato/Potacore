@@ -48,7 +48,6 @@ dependencies {
         officialMojangMappings()
         parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")
     }
-    //mappings "net.fabricmc:yarn:${minecraft_version}+build.${project.yarn_mappings}:v2"
     forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 }
 

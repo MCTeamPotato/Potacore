@@ -142,12 +142,9 @@ public class IteratorContainerSet<E> implements Set<E> {
 
     @Override
     public Spliterator<E> spliterator() {
-        if (this.validated.get()) {
-            synchronized (this.set) {
-                return this.set.spliterator();
-            }
-        } else {
-            return this.iterable.get().spliterator();
+        this.validateSet();
+        synchronized (this.set) {
+            return this.set.spliterator();
         }
     }
 }

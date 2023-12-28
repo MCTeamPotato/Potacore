@@ -1,2 +1,2 @@
-# 0.0.3
-Validate set on IteratorContainerSet#iterator method call because it needs to maintain the uniqueness of elements.
+# 0.0.4
+Validate set on IteratorContainerSet#spliterator method call because it needs to maintain the uniqueness of elements.

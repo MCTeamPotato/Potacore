@@ -107,11 +107,11 @@ tasks.register("publishCurseForge", TaskPublishCurseForge) {
     mainFile.addJavaVersion("Java 17", "Java 8")
     mainFile.addGameVersion(supportedGameVersions)
 
-    def sourcesJar = mainFile.withAdditionalFile(sourcesJar)
-    def javadocJar = mainFile.withAdditionalFile(javadocJar)
+    def sourcesFile = mainFile.withAdditionalFile(sourcesJar)
+    def javadocFile = mainFile.withAdditionalFile(javadocJar)
 
-    sourcesJar.changelog = currentChangeLog
-    sourcesJar.changelogType = "markdown"
-    javadocJar.changelog = currentChangeLog
-    javadocJar.changelogType = "markdown"
+    sourcesFile.changelog = currentChangeLog
+    sourcesFile.changelogType = "markdown"
+    javadocFile.changelog = currentChangeLog
+    javadocFile.changelogType = "markdown"
 }

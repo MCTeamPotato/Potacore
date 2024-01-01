@@ -3,19 +3,32 @@ package com.teampotato.potacore.collection;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Avoid iteration during the initialization but validate it before methods are used.
+ * Or never iterating if you are not using methods that call {@link IteratorContainerList#validateList()}
+ **/
 @ThreadSafe
 @SuppressWarnings("unused")
 public class IteratorContainerList<E> implements List<E> {
     private final AtomicReference<Iterable<E>> iterable = new AtomicReference<>();
+    private @Nullable Set<E> distinctedList;
+
+    /**
+     * Whether {@link IteratorContainerList#list} is validated
+     **/
     private final AtomicBoolean validated = new AtomicBoolean();
     private final List<E> list;
 
+    /**
+     * @param iterable The iterable to be contained
+     **/
     public IteratorContainerList(@NotNull Iterable<E> iterable) {
         this.iterable.set(iterable);
         this.list = new ObjectArrayList<>();
@@ -53,9 +66,8 @@ public class IteratorContainerList<E> implements List<E> {
     @Override
     public boolean contains(Object o) {
         this.validateList();
-        synchronized (this.list) {
-            return this.list.contains(o);
-        }
+        if (this.distinctedList == null) this.distinctedList = new ObjectOpenHashSet<>(this.list);
+        return this.distinctedList.contains(o);
     }
 
     @NotNull
@@ -108,7 +120,8 @@ public class IteratorContainerList<E> implements List<E> {
     public boolean containsAll(@NotNull Collection<?> c) {
         this.validateList();
         synchronized (this.list) {
-            return new ObjectOpenHashSet<>(this.list).containsAll(c);
+            if (this.distinctedList == null) this.distinctedList = new ObjectOpenHashSet<>(this.list);
+            return this.distinctedList.containsAll(c);
         }
     }
 

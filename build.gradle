@@ -66,6 +66,7 @@ tasks.withType(JavaCompile).configureEach {
 
 java {
     withSourcesJar()
+    withJavadocJar()
 }
 
 jar {
@@ -90,7 +91,7 @@ modrinth {
     gameVersions.addAll(supportedGameVersions)
     loaders = ["forge"]
     versionType = "release"
-    additionalFiles = [sourcesJar]
+    additionalFiles = [sourcesJar, javadocJar]
     changelog.set(currentChangeLog)
 }
 
@@ -107,7 +108,8 @@ tasks.register("publishCurseForge", TaskPublishCurseForge) {
     mainFile.addJavaVersion("Java 17", "Java 8")
     mainFile.addGameVersion(supportedGameVersions)
 
-    UploadArtifact sourcesFile = mainFile.withAdditionalFile(sourcesJar)
-    sourcesFile.changelog = currentChangeLog
-    sourcesFile.changelogType = "markdown"
+    mainFile.withAdditionalFile(sourcesJar).changelog = currentChangeLog
+    mainFile.withAdditionalFile(sourcesJar).changelogType = "markdown"
+    mainFile.withAdditionalFile(javadocJar).changelog = currentChangeLog
+    mainFile.withAdditionalFile(javadocJar).changelogType = "markdown"
 }

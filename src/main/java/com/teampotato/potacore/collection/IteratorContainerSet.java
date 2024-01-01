@@ -8,13 +8,24 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Avoid iteration during the initialization but validate it before methods are used.
+ * Or never iterating if you are not using methods that call {@link IteratorContainerSet#validateSet()}
+ **/
 @ThreadSafe
 @SuppressWarnings("unused")
 public class IteratorContainerSet<E> implements Set<E> {
     private final AtomicReference<Iterable<E>> iterable = new AtomicReference<>();
+
+    /**
+     * Whether {@link IteratorContainerSet#set} is validated
+     **/
     private final AtomicBoolean validated = new AtomicBoolean();
     private final Set<E> set;
 
+    /**
+     * @param iterable The iterable to be contained
+     **/
     public IteratorContainerSet(@NotNull Iterable<E> iterable) {
         this.iterable.set(iterable);
         this.set = new ObjectOpenHashSet<>();

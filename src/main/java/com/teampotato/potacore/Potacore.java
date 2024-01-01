@@ -2,7 +2,9 @@ package com.teampotato.potacore;
 
 import net.minecraftforge.fml.common.Mod;
 
-@Mod(Potacore.MOD_ID)
+/**
+ * Main entrypoint
+ **/
+@Mod("potacore")
 public class Potacore {
-    public static final String MOD_ID = "potacore";
 }

@@ -1,253 +1,330 @@
 package com.teampotato.potacore.collection;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 /**
  * Avoid iteration during the initialization but validate it before methods are used.
- * Or never iterating if you are not using methods that call {@link IteratorContainerList#validateList()}
+ * Or never iterating if you are not using methods that call {@link IteratorContainerList#validateContainer()}
  **/
-@ThreadSafe
 @SuppressWarnings("unused")
-public class IteratorContainerList<E> implements List<E> {
-    private final AtomicReference<Iterable<E>> iterable = new AtomicReference<>();
-    private @Nullable Set<E> distinctedList;
-
-    /**
-     * Whether {@link IteratorContainerList#list} is validated
-     **/
-    private final AtomicBoolean validated = new AtomicBoolean();
-    private final List<E> list;
+public class IteratorContainerList<G> implements List<G> {
+    private final AtomicReference<Iterable<G>> iteratorCopySource = new AtomicReference<>();
+    private final List<G> container;
+    private final AtomicBoolean validated = new AtomicBoolean(false);
+    private @Nullable Set<G> containCheckHelper;
 
     /**
      * @param iterable The iterable to be contained
+     * @param internalContainerType should be an empty (or {@link UnsupportedOperationException UnsupportedOperationException} will be thrown when you use it) list, for example {@link it.unimi.dsi.fastutil.objects.ObjectArrayList} or {@link it.unimi.dsi.fastutil.objects.ReferenceArrayList}
      **/
-    public IteratorContainerList(@NotNull Iterable<E> iterable) {
-        this.iterable.set(iterable);
-        this.list = new ObjectArrayList<>();
+    public IteratorContainerList(@NotNull Iterable<G> iterable, @NotNull List<G> internalContainerType) {
+        this.iteratorCopySource.set(iterable);
+        this.container = internalContainerType;
     }
 
-    private void validateList() {
+    /**
+     * @param iterator The iterator to be contained
+     * @param interalListType should be an empty (or {@link UnsupportedOperationException UnsupportedOperationException} will be thrown when you use it) list, for example {@link it.unimi.dsi.fastutil.objects.ObjectArrayList} or {@link it.unimi.dsi.fastutil.objects.ReferenceArrayList}
+     **/
+    public IteratorContainerList(@NotNull Iterator<G> iterator, @NotNull List<G> interalListType) {
+        this.iteratorCopySource.set(new Iterable<G>() {
+            public @NotNull Iterator<G> iterator() {
+                return iterator;
+            }
+        });
+        this.container = interalListType;
+    }
+
+    private void validateContainer() {
         if (this.validated.get()) return;
         this.validated.set(true);
-        synchronized (this.list) {
-            if (!this.list.isEmpty()) throw new ConcurrentModificationException("The list field in IteratorContainerList cannot be modified before validation.");
-            this.iterable.get().forEach(this.list::add);
-            this.iterable.set(null);
+        synchronized (this.container) {
+            if (iteratorCopySource.get() == null) throw new NullPointerException("Already validated");
+            if (!this.container.isEmpty()) throw new UnsupportedOperationException("Set cannot be modified before validation");
+            this.iteratorCopySource.get().forEach(this.container::add);
         }
+        this.iteratorCopySource.set(null);
     }
 
     @Override
     public int size() {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.size();
-        }
+        this.validateContainer();
+        return this.container.size();
     }
 
     @Override
     public boolean isEmpty() {
         if (this.validated.get()) {
-            synchronized (this.list) {
-                return this.list.isEmpty();
+            synchronized (this.container) {
+                return this.container.isEmpty();
             }
         } else {
-            return this.iterable.get().iterator().hasNext();
+            return this.iteratorCopySource.get().iterator().hasNext();
         }
     }
 
     @Override
     public boolean contains(Object o) {
-        this.validateList();
-        if (this.distinctedList == null) this.distinctedList = new ObjectOpenHashSet<>(this.list);
-        return this.distinctedList.contains(o);
+        if (this.containCheckHelper == null) {
+            if (!this.validated.get()) {
+                this.containCheckHelper = new ObjectOpenHashSet<>(this.iteratorCopySource.get().iterator());
+            } else {
+                synchronized (this.container) {
+                    this.containCheckHelper = new ObjectOpenHashSet<>(this.container);
+                }
+            }
+        }
+        return this.containCheckHelper.contains(o);
     }
 
     @NotNull
     @Override
-    public Iterator<E> iterator() {
+    public Iterator<G> iterator() {
         if (this.validated.get()) {
-            synchronized (this.list) {
-                return this.list.iterator();
+            synchronized (this.container) {
+                return this.container.iterator();
             }
         } else {
-            return this.iterable.get().iterator();
+            return this.iteratorCopySource.get().iterator();
         }
     }
 
-    @NotNull
+    @Override
+    public void forEach(Consumer<? super G> action) {
+        if (this.validated.get()) {
+            synchronized (this.container) {
+                this.container.forEach(action);
+            }
+        } else {
+            this.iteratorCopySource.get().forEach(action);
+        }
+    }
+
     @Override
     public Object @NotNull [] toArray() {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.toArray();
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.toArray();
         }
     }
 
-    @NotNull
     @Override
     public <T> T @NotNull [] toArray(T @NotNull [] a) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.toArray(a);
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.toArray(a);
+        }
+    }
+
+    @SuppressWarnings("Since15")
+    public <T> T[] toArray(IntFunction<T[]> generator) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.toArray(generator.apply(0));
         }
     }
 
     @Override
-    public boolean add(E e) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.add(e);
+    public boolean add(G g) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.add(g);
         }
     }
 
     @Override
     public boolean remove(Object o) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.remove(o);
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.remove(o);
         }
     }
 
     @Override
     public boolean containsAll(@NotNull Collection<?> c) {
-        this.validateList();
-        synchronized (this.list) {
-            if (this.distinctedList == null) this.distinctedList = new ObjectOpenHashSet<>(this.list);
-            return this.distinctedList.containsAll(c);
+        if (this.containCheckHelper == null) {
+            if (!this.validated.get()) {
+                this.containCheckHelper = new ObjectOpenHashSet<>(this.iteratorCopySource.get().iterator());
+            } else {
+                synchronized (this.container) {
+                    this.containCheckHelper = new ObjectOpenHashSet<>(this.container);
+                }
+            }
+        }
+        return this.containCheckHelper.containsAll(c);
+    }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends G> c) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.addAll(c);
         }
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends E> c) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.addAll(c);
-        }
-    }
-
-    @Override
-    public boolean addAll(int index, @NotNull Collection<? extends E> c) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.addAll(index, c);
+    public boolean addAll(int index, @NotNull Collection<? extends G> c) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.addAll(index, c);
         }
     }
 
     @Override
     public boolean removeAll(@NotNull Collection<?> c) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.removeAll(c);
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.removeAll(c);
+        }
+    }
+
+    @Override
+    public boolean removeIf(Predicate<? super G> filter) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.removeIf(filter);
         }
     }
 
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.retainAll(c);
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.retainAll(c);
+        }
+    }
+
+    @Override
+    public void replaceAll(UnaryOperator<G> operator) {
+        this.validateContainer();
+        synchronized (this.container) {
+            this.container.replaceAll(operator);
+        }
+    }
+
+    @Override
+    public void sort(Comparator<? super G> c) {
+        this.validateContainer();
+        synchronized (this.container) {
+            this.container.sort(c);
         }
     }
 
     @Override
     public void clear() {
-        this.iterable.set(null);
-        synchronized (this.list) {
-            this.list.clear();
+        synchronized (this.container) {
+            this.container.clear();
+        }
+        this.iteratorCopySource.set(null);
+    }
+
+    @Override
+    public G get(int index) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.get(index);
         }
     }
 
     @Override
-    public E get(int index) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.get(index);
+    public G set(int index, G element) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.set(index, element);
         }
     }
 
     @Override
-    public E set(int index, E element) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.set(index, element);
+    public void add(int index, G element) {
+        this.validateContainer();
+        synchronized (this.container) {
+            this.container.add(index, element);
         }
     }
 
     @Override
-    public void add(int index, E element) {
-        this.validateList();
-        synchronized (this.list) {
-            this.list.add(index, element);
-        }
-    }
-
-    @Override
-    public E remove(int index) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.remove(index);
+    public G remove(int index) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.remove(index);
         }
     }
 
     @Override
     public int indexOf(Object o) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.indexOf(o);
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.indexOf(o);
         }
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.lastIndexOf(o);
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.lastIndexOf(o);
         }
     }
 
     @NotNull
     @Override
-    public ListIterator<E> listIterator() {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.listIterator();
+    public ListIterator<G> listIterator() {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.listIterator();
         }
     }
 
     @NotNull
     @Override
-    public ListIterator<E> listIterator(int index) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.listIterator(index);
+    public ListIterator<G> listIterator(int index) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.listIterator(index);
         }
     }
 
     @NotNull
     @Override
-    public List<E> subList(int fromIndex, int toIndex) {
-        this.validateList();
-        synchronized (this.list) {
-            return this.list.subList(fromIndex, toIndex);
+    public List<G> subList(int fromIndex, int toIndex) {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.subList(fromIndex, toIndex);
         }
     }
 
     @Override
-    public Spliterator<E> spliterator() {
-        if (this.validated.get()) {
-            synchronized (this.list) {
-                return this.list.spliterator();
-            }
-        } else {
-            return this.iterable.get().spliterator();
+    public Spliterator<G> spliterator() {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.spliterator();
+        }
+    }
+
+    @Override
+    public Stream<G> stream() {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.stream();
+        }
+    }
+
+    @Override
+    public Stream<G> parallelStream() {
+        this.validateContainer();
+        synchronized (this.container) {
+            return this.container.parallelStream();
         }
     }
 }

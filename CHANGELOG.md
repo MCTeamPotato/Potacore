@@ -1,2 +1,2 @@
-# 0.0.5
-Add Javadoc to classes
+# 0.0.6
+Re-write IteratorContainerList and IteratorContainerSet

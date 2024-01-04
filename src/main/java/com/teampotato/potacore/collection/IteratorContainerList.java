@@ -22,6 +22,7 @@ public class IteratorContainerList<G> implements List<G> {
     private final List<G> container;
     private final AtomicBoolean validated = new AtomicBoolean(false);
     private @Nullable Set<G> containCheckHelper;
+    private final AtomicBoolean isEmpty = new AtomicBoolean();
 
     /**
      * @param iterable The iterable to be contained
@@ -30,6 +31,7 @@ public class IteratorContainerList<G> implements List<G> {
     public IteratorContainerList(@NotNull Iterable<G> iterable, @NotNull List<G> internalContainerType) {
         this.iteratorCopySource.set(iterable);
         this.container = internalContainerType;
+        this.isEmpty.set(!this.iteratorCopySource.get().iterator().hasNext());
     }
 
     /**
@@ -43,12 +45,13 @@ public class IteratorContainerList<G> implements List<G> {
             }
         });
         this.container = interalListType;
+        this.isEmpty.set(!this.iteratorCopySource.get().iterator().hasNext());
     }
 
     private void validateContainer() {
+        if (this.isEmpty.get()) return;
         if (this.validated.get()) return;
         this.validated.set(true);
-        if (this.isEmpty()) return;
         synchronized (this.container) {
             if (iteratorCopySource.get() == null) throw new NullPointerException("Already validated");
             if (!this.container.isEmpty()) throw new UnsupportedOperationException("Set cannot be modified before validation");
@@ -71,7 +74,7 @@ public class IteratorContainerList<G> implements List<G> {
                 return this.container.isEmpty();
             }
         } else {
-            return !this.iteratorCopySource.get().iterator().hasNext();
+            return this.isEmpty.get();
         }
     }
 

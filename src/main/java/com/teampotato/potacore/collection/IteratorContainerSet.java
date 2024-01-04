@@ -2,10 +2,7 @@ package com.teampotato.potacore.collection;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -48,6 +45,7 @@ public class IteratorContainerSet<G> implements Set<G> {
     private void validateContainer() {
         if (this.validated.get()) return;
         this.validated.set(true);
+        if (this.isEmpty()) return;
         synchronized (this.container) {
             if (iteratorCopySource.get() == null) throw new NullPointerException("Already validated");
             if (!this.container.isEmpty()) throw new UnsupportedOperationException("Set cannot be modified before validation");
@@ -66,9 +64,12 @@ public class IteratorContainerSet<G> implements Set<G> {
 
     @Override
     public boolean isEmpty() {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.isEmpty();
+        if (this.validated.get()) {
+            synchronized (this.container) {
+                return this.container.isEmpty();
+            }
+        } else {
+            return !this.iteratorCopySource.get().iterator().hasNext();
         }
     }
 

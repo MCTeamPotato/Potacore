@@ -11,7 +11,6 @@ import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
 /**
  * Avoid iteration during the initialization but validate it before methods are used.
@@ -49,6 +48,7 @@ public class IteratorContainerList<G> implements List<G> {
     private void validateContainer() {
         if (this.validated.get()) return;
         this.validated.set(true);
+        if (this.isEmpty()) return;
         synchronized (this.container) {
             if (iteratorCopySource.get() == null) throw new NullPointerException("Already validated");
             if (!this.container.isEmpty()) throw new UnsupportedOperationException("Set cannot be modified before validation");
@@ -59,6 +59,7 @@ public class IteratorContainerList<G> implements List<G> {
 
     @Override
     public int size() {
+        if (this.isEmpty()) return 0;
         this.validateContainer();
         return this.container.size();
     }
@@ -70,7 +71,7 @@ public class IteratorContainerList<G> implements List<G> {
                 return this.container.isEmpty();
             }
         } else {
-            return this.iteratorCopySource.get().iterator().hasNext();
+            return !this.iteratorCopySource.get().iterator().hasNext();
         }
     }
 
@@ -306,25 +307,12 @@ public class IteratorContainerList<G> implements List<G> {
 
     @Override
     public Spliterator<G> spliterator() {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.spliterator();
-        }
-    }
-
-    @Override
-    public Stream<G> stream() {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.stream();
-        }
-    }
-
-    @Override
-    public Stream<G> parallelStream() {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.parallelStream();
+        if (this.validated.get()) {
+            synchronized (this.container) {
+                return this.container.spliterator();
+            }
+        } else {
+            return Spliterators.spliteratorUnknownSize(this.iteratorCopySource.get().iterator(), 0);
         }
     }
 }

@@ -1,2 +1,2 @@
-# 0.0.6
-Re-write IteratorContainerList and IteratorContainerSet
+# 0.0.7
+Fix isEmpty logic being incorrect.

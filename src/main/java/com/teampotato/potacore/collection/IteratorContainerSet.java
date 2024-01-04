@@ -19,7 +19,6 @@ public class IteratorContainerSet<G> implements Set<G> {
     private final AtomicReference<Iterable<G>> iteratorCopySource = new AtomicReference<>();
     private final Set<G> container;
     private final AtomicBoolean validated = new AtomicBoolean(false);
-    private final AtomicBoolean isEmpty = new AtomicBoolean();
 
     /**
      * @param iterable The iterable to be contained
@@ -28,7 +27,6 @@ public class IteratorContainerSet<G> implements Set<G> {
     public IteratorContainerSet(@NotNull Iterable<G> iterable, @NotNull Set<G> internalContainerType) {
         this.iteratorCopySource.set(iterable);
         this.container = internalContainerType;
-        this.isEmpty.set(!this.iteratorCopySource.get().iterator().hasNext());
     }
 
     /**
@@ -42,11 +40,9 @@ public class IteratorContainerSet<G> implements Set<G> {
             }
         });
         this.container = internalContainerType;
-        this.isEmpty.set(!this.iteratorCopySource.get().iterator().hasNext());
     }
 
     private void validateContainer() {
-        if (this.isEmpty.get()) return;
         if (this.validated.get()) return;
         this.validated.set(true);
         synchronized (this.container) {
@@ -72,7 +68,7 @@ public class IteratorContainerSet<G> implements Set<G> {
                 return this.container.isEmpty();
             }
         } else {
-            return this.isEmpty.get();
+            return !this.iteratorCopySource.get().iterator().hasNext();
         }
     }
 

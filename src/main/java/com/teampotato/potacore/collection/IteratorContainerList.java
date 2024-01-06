@@ -177,6 +177,7 @@ public class IteratorContainerList<G> implements List<G> {
             }
             return this.containCheckHelper.containsAll(c);
         } else {
+            this.validateContainer();
             synchronized (this.container) {
                 return new ObjectOpenHashSet<>(this.container).containsAll(c);
             }

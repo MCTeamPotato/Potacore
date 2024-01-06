@@ -1,6 +1,8 @@
 package com.teampotato.potacore.collection;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,35 +21,41 @@ public class IteratorContainerSet<G> implements Set<G> {
     private final AtomicReference<Iterable<G>> iteratorCopySource = new AtomicReference<>();
     private final Set<G> container;
     private final AtomicBoolean validated = new AtomicBoolean(false);
+    private @Nullable Set<G> containCheckHelper;
+    private final AtomicBoolean allowCacheOnContainsCheck = new AtomicBoolean(false);
 
     /**
      * @param iterable The iterable to be contained
      * @param internalContainerType should be an empty (or {@link UnsupportedOperationException UnsupportedOperationException} will be thrown when you use it) set, for example {@link it.unimi.dsi.fastutil.objects.ObjectOpenHashSet} or {@link it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet}
+     * @param allowCacheOnContainsCheck If enabled, a {@link ObjectOpenHashSet} will be initialized when you firstly call {@link IteratorContainerList#contains(Object)} or {@link IteratorContainerList#containsAll(Collection)} for faster contains check. If you are not using {@link it.unimi.dsi.fastutil.objects.ObjectArraySet}-like container, you can keep this false.
      **/
-    public IteratorContainerSet(@NotNull Iterable<G> iterable, @NotNull Set<G> internalContainerType) {
+    public IteratorContainerSet(@NotNull Iterable<G> iterable, @NotNull Set<G> internalContainerType, boolean allowCacheOnContainsCheck) {
         this.iteratorCopySource.set(iterable);
         this.container = internalContainerType;
+        this.allowCacheOnContainsCheck.set(allowCacheOnContainsCheck);
     }
 
     /**
      * @param iterator The iterator to be contained
      * @param internalContainerType should be an empty (or {@link UnsupportedOperationException UnsupportedOperationException} will be thrown when you use it) set, for example {@link it.unimi.dsi.fastutil.objects.ObjectOpenHashSet} or {@link it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet}
+     * @param allowCacheOnContainsCheck If enabled, a {@link ObjectOpenHashSet} will be initialized when you firstly call {@link IteratorContainerList#contains(Object)} or {@link IteratorContainerList#containsAll(Collection)} for faster contains check. If you are not using {@link it.unimi.dsi.fastutil.objects.ObjectArraySet}-like container, you can keep this false.
      **/
-    public IteratorContainerSet(Iterator<G> iterator, @NotNull Set<G> internalContainerType) {
+    public IteratorContainerSet(Iterator<G> iterator, @NotNull Set<G> internalContainerType, boolean allowCacheOnContainsCheck) {
         this.iteratorCopySource.set(new Iterable<G>() {
             public @NotNull Iterator<G> iterator() {
                 return iterator;
             }
         });
         this.container = internalContainerType;
+        this.allowCacheOnContainsCheck.set(allowCacheOnContainsCheck);
     }
 
     private void validateContainer() {
         if (this.validated.get()) return;
         this.validated.set(true);
         synchronized (this.container) {
-            if (iteratorCopySource.get() == null) throw new NullPointerException("Already validated");
-            if (!this.container.isEmpty()) throw new UnsupportedOperationException("Set cannot be modified before validation");
+            if (this.iteratorCopySource.get() == null) throw new NullPointerException("Already validated");
+            if (!this.container.isEmpty()) throw new UnsupportedOperationException("Container must be empty before validation");
             this.iteratorCopySource.get().forEach(this.container::add);
         }
         this.iteratorCopySource.set(null);
@@ -74,9 +82,22 @@ public class IteratorContainerSet<G> implements Set<G> {
 
     @Override
     public boolean contains(Object o) {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.contains(o);
+        if (this.allowCacheOnContainsCheck.get()) {
+            if (this.containCheckHelper == null) {
+                if (!this.validated.get()) {
+                    this.containCheckHelper = new ObjectOpenHashSet<>(this.iteratorCopySource.get().iterator());
+                } else {
+                    synchronized (this.container) {
+                        this.containCheckHelper = new ObjectOpenHashSet<>(this.container);
+                    }
+                }
+            }
+            return this.containCheckHelper.contains(o);
+        } else {
+            this.validateContainer();
+            synchronized (this.container) {
+                return this.container.contains(o);
+            }
         }
     }
 
@@ -147,9 +168,21 @@ public class IteratorContainerSet<G> implements Set<G> {
 
     @Override
     public boolean containsAll(@NotNull Collection<?> c) {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.containsAll(c);
+        if (this.allowCacheOnContainsCheck.get()) {
+            if (this.containCheckHelper == null) {
+                if (!this.validated.get()) {
+                    this.containCheckHelper = new ObjectOpenHashSet<>(this.iteratorCopySource.get().iterator());
+                } else {
+                    synchronized (this.container) {
+                        this.containCheckHelper = new ObjectOpenHashSet<>(this.container);
+                    }
+                }
+            }
+            return this.containCheckHelper.containsAll(c);
+        } else {
+            synchronized (this.container) {
+                return new ObjectOpenHashSet<>(this.container).containsAll(c);
+            }
         }
     }
 

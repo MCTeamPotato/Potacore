@@ -1,2 +1,3 @@
-# 0.0.8
-Add containsCache boolean to IteratorContainers constructor
+# 0.0.9
+- Optimize removeIf not to use validateContainer
+- Fix IteratorContainerSet#forEach iteration

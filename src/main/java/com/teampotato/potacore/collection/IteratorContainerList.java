@@ -1,5 +1,6 @@
 package com.teampotato.potacore.collection;
 
+import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,7 +120,7 @@ public class IteratorContainerList<G> implements List<G> {
                 this.container.forEach(action);
             }
         } else {
-            this.iteratorCopySource.get().forEach(action);
+            this.iteratorCopySource.get().iterator().forEachRemaining(action);
         }
     }
 
@@ -210,9 +211,14 @@ public class IteratorContainerList<G> implements List<G> {
 
     @Override
     public boolean removeIf(Predicate<? super G> filter) {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.removeIf(filter);
+        if (this.validated.get()) {
+            synchronized (this.container) {
+                return this.container.removeIf(filter);
+            }
+        } else {
+            Iterator<G> iterator = this.iteratorCopySource.get().iterator();
+            this.iteratorCopySource.set(() -> Iterators.filter(iterator, obj -> !filter.test(obj)));
+            return true;
         }
     }
 

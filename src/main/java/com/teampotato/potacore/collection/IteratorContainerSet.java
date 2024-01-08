@@ -1,16 +1,19 @@
 package com.teampotato.potacore.collection;
 
+import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * Avoid iteration during the initialization but validate it before methods are used.
@@ -118,6 +121,8 @@ public class IteratorContainerSet<G> implements Set<G> {
             }
         } else {
             synchronized (this.container) {
+                this.validated.set(true);
+                this.iteratorCopySource.set(null);
                 for (G next : this.iteratorCopySource.get()) {
                     if (!this.container.add(next)) continue;
                     action.accept(next);
@@ -213,9 +218,14 @@ public class IteratorContainerSet<G> implements Set<G> {
 
     @Override
     public boolean removeIf(Predicate<? super G> filter) {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.removeIf(filter);
+        if (this.validated.get()) {
+            synchronized (this.container) {
+                return this.container.removeIf(filter);
+            }
+        } else {
+            Iterator<G> iterator = this.iteratorCopySource.get().iterator();
+            this.iteratorCopySource.set(() -> Iterators.filter(iterator, obj -> !filter.test(obj)));
+            return true;
         }
     }
 
@@ -232,22 +242,6 @@ public class IteratorContainerSet<G> implements Set<G> {
         this.validateContainer();
         synchronized (this.container) {
             return this.container.spliterator();
-        }
-    }
-
-    @Override
-    public Stream<G> stream() {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.stream();
-        }
-    }
-
-    @Override
-    public Stream<G> parallelStream() {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.parallelStream();
         }
     }
 }

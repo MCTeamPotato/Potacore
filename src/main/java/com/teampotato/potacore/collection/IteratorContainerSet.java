@@ -1,6 +1,7 @@
 package com.teampotato.potacore.collection;
 
 import com.google.common.collect.Iterators;
+import com.teampotato.potacore.iteration.MergedIterable;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -193,10 +194,17 @@ public class IteratorContainerSet<G> implements Set<G> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean addAll(@NotNull Collection<? extends G> c) {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.addAll(c);
+        if (this.validated.get()) {
+            synchronized (this.container) {
+                return this.container.addAll(c);
+            }
+        } else {
+            Iterator<G> iterator = this.iteratorCopySource.get().iterator();
+            Iterator<G> cIterator = (Iterator<G>) c.iterator();
+            this.iteratorCopySource.set(new MergedIterable<>(cIterator, iterator));
+            return true;
         }
     }
 

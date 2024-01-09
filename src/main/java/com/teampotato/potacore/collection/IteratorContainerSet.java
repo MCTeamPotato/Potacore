@@ -52,7 +52,9 @@ public class IteratorContainerSet<G> implements Set<G> {
     public int size() {
         if (this.isEmpty()) return 0;
         this.validateContainer();
-        return this.container.size();
+        synchronized (this.container) {
+            return this.container.size();
+        }
     }
 
     public boolean isEmpty() {

@@ -170,7 +170,9 @@ public class IteratorContainerList<G> implements List<G> {
     
     public boolean addAll(int index, @NotNull Collection<? extends G> c) {
         this.validateContainer();
-        return this.container.addAll(index, c);
+        synchronized (this.container) {
+            return this.container.addAll(index, c);
+        }
     }
     
     public boolean removeAll(@NotNull Collection<?> c) {

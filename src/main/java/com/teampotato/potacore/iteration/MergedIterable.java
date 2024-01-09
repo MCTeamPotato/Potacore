@@ -38,8 +38,7 @@ public class MergedIterable<T> implements Iterable<T> {
             }
         };
     }
-
-    @Override
+    
     public @NotNull MergedIterator<T> iterator() {
         return new MergedIterator<>(this.iterable1, this.iterable2);
     }

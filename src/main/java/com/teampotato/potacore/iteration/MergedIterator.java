@@ -32,12 +32,10 @@ public class MergedIterator<T> implements Iterator<T> {
         this(iterable1.iterator(), iterable2.iterator());
     }
 
-    @Override
     public boolean hasNext() {
         return (this.useIterator1 && this.iterator1.hasNext()) || this.iterator2.hasNext();
     }
 
-    @Override
     public T next() {
         if (this.useIterator1) {
             if (this.iterator1.hasNext()) {

@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
 /**
@@ -109,15 +108,6 @@ public class IteratorContainerSet<G> implements Set<G> {
             return this.container.toArray(a);
         }
     }
-
-    @SuppressWarnings("Since15")
-    public <T> T[] toArray(IntFunction<T[]> generator) {
-        this.validateContainer();
-        synchronized (this.container) {
-            return this.container.toArray(generator.apply(0));
-        }
-    }
-    
     public boolean add(G g) {
         if (this.validated.get()) {
             synchronized (this.container) {

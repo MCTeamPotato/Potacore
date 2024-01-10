@@ -44,7 +44,7 @@ public class IteratorContainerSet<G> implements Set<G> {
         if (this.validated.get()) return;
         this.validated.set(true);
         synchronized (this.container) {
-            this.iteratorSource.get().iterator().forEachRemaining(this.container::add);
+            this.iteratorSource.get().forEach(this.container::add);
         }
         this.iteratorSource.set(null);
     }
@@ -85,10 +85,10 @@ public class IteratorContainerSet<G> implements Set<G> {
     public void forEach(Consumer<? super G> action) {
         if (this.validated.get()) {
             synchronized (this.container) {
-                this.container.iterator().forEachRemaining(action);
+                this.container.forEach(action);
             }
         } else {
-            this.iteratorSource.get().iterator().forEachRemaining(obj -> {
+            this.iteratorSource.get().forEach(obj -> {
                 if (this.container.add(obj)) action.accept(obj);
             });
             this.validated.set(true);

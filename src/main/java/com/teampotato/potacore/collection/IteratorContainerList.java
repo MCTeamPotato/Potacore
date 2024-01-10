@@ -45,7 +45,7 @@ public class IteratorContainerList<G> implements List<G> {
         if (this.validated.get()) return;
         this.validated.set(true);
         synchronized (this.container) {
-            this.iteratorSource.get().iterator().forEachRemaining(this.container::add);
+            this.iteratorSource.get().forEach(this.container::add);
         }
         this.iteratorSource.set(null);
     }
@@ -83,13 +83,17 @@ public class IteratorContainerList<G> implements List<G> {
         }
     }
 
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     public void forEach(Consumer<? super G> action) {
         if (this.validated.get()) {
             synchronized (this.container) {
-                this.container.iterator().forEachRemaining(action);
+                int size = this.container.size();
+                for (int index = 0; index < size; index++) {
+                    action.accept(this.container.get(index));
+                }
             }
         } else {
-            this.iteratorSource.get().iterator().forEachRemaining(obj -> {
+            this.iteratorSource.get().forEach(obj -> {
                 this.container.add(obj);
                 action.accept(obj);
             });

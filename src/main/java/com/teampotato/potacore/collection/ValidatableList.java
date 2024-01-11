@@ -11,30 +11,29 @@ import java.util.function.UnaryOperator;
 @ApiStatus.Internal
 class ValidatableList<B> implements List<B> {
     final List<B> container;
-    volatile Iterable<B> iteratorSource;
-    volatile boolean validated = false;
+    Iterable<B> iteratorSource;
+    boolean validated = false;
 
-    public ValidatableList(@NotNull Iterable<B> contained, @NotNull List<B> containerType) {
+    ValidatableList(@NotNull Iterable<B> contained, @NotNull List<B> containerType) {
         this(contained.iterator(), containerType);
     }
 
-    public ValidatableList(@NotNull Iterator<B> contained, @NotNull List<B> containerType) {
+    ValidatableList(@NotNull Iterator<B> contained, @NotNull List<B> containerType) {
         if (!containerType.isEmpty()) throw new UnsupportedOperationException("containerType is excepted to be empty");
         this.container = containerType;
         this.iteratorSource = () -> contained;
     }
 
     void validateContainer() {
-        if (this.validated) return;
-        this.validated = true;
-        synchronized (this.container) {
+        synchronized (this) {
+            if (this.validated) return;
+            this.validated = true;
             this.iteratorSource.forEach(this.container::add);
+            this.iteratorSource = null;
         }
-        this.iteratorSource = null;
     }
 
     public int size() {
-        if (this.isEmpty()) return 0;
         this.validateContainer();
         return this.container.size();
     }

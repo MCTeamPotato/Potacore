@@ -46,4 +46,19 @@ public class MergedIterator<T> implements Iterator<T> {
         }
         return this.iterator2.next();
     }
+
+    public void remove() {
+        if (this.useIterator1) {
+            this.iterator1.remove();
+        } else {
+            this.iterator2.remove();
+        }
+    }
+
+    /**
+     * @return whether or not this merged iterator is using first iterator
+     **/
+    public boolean isUseIterator1() {
+        return this.useIterator1;
+    }
 }

@@ -1,12 +1,16 @@
 package com.teampotato.potacore.iteration;
 
+import com.google.common.base.Suppliers;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Filterable iterator allows you to {@link FilterableIterator#addFilter(Predicate)} add predicate filter} to skip iteration of certain elements
@@ -18,6 +22,7 @@ public class FilterableIterator<K> implements Iterator<K> {
     private @Nullable Predicate<K> filter;
     private K next;
     private static final FilterableIterator<Object> EMPTY = wrap(Collections.emptyIterator());
+    private final Supplier<Boolean> isEmptyFilter = Suppliers.memoize(() -> this.filter == null);
 
     /**
      * @param <H> generics object
@@ -28,7 +33,7 @@ public class FilterableIterator<K> implements Iterator<K> {
         return (FilterableIterator<H>) EMPTY;
     }
 
-    private FilterableIterator(Iterator<K> iterator) {
+    private FilterableIterator(@NotNull Iterator<K> iterator) {
         this.iterator = iterator;
     }
 
@@ -40,7 +45,7 @@ public class FilterableIterator<K> implements Iterator<K> {
      **/
     @Contract(value = "_ -> new", pure = true)
     public static <B> @NotNull FilterableIterator<B> wrap(@NotNull Iterator<B> iterator) {
-        return new FilterableIterator<>(iterator);
+        return new FilterableIterator<>(Validate.notNull(iterator));
     }
 
     /**
@@ -48,28 +53,35 @@ public class FilterableIterator<K> implements Iterator<K> {
      * @param filter the filter to be added
      **/
     public void addFilter(Predicate<K> filter) {
+        if (this.next != null) throw new UnsupportedOperationException("FilterableIterator#addFilter is not supported after iteration begins");
         this.filter = (this.filter == null) ? filter : this.filter.and(filter);
     }
 
-    private boolean checkNext() {
-        while (this.filter != null && this.iterator.hasNext()) {
+    private boolean advance() {
+        assert this.filter != null;
+        while (this.iterator.hasNext()) {
             K candidate = this.iterator.next();
             if (this.filter.test(candidate)) {
                 this.next = candidate;
-                return true;
+                break;
+            } else {
+                this.next = null;
             }
         }
-        return false;
+        return this.next != null;
     }
 
     @Override
     public boolean hasNext() {
-        return checkNext();
+        if (this.isEmptyFilter.get()) return this.iterator.hasNext();
+        return this.advance();
     }
 
     @Override
     public K next() {
-        return next;
+        if (this.isEmptyFilter.get()) return this.iterator.next();
+        if (this.next == null) throw new NoSuchElementException();
+        return this.next;
     }
 
     @Override

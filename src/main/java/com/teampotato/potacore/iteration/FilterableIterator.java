@@ -6,9 +6,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -41,11 +39,33 @@ public class FilterableIterator<K> implements Iterator<K> {
      * Wrap a iterator with filterable iterator for further filtering.
      * @param iterator the iterator to be wrapped
      * @param <B> generics object
-     * @return the filterable iterator containing the elements of iterator
+     * @return the filterable iterator containing the elements of the iterator
      **/
     @Contract(value = "_ -> new", pure = true)
     public static <B> @NotNull FilterableIterator<B> wrap(@NotNull Iterator<B> iterator) {
         return new FilterableIterator<>(Validate.notNull(iterator));
+    }
+
+    /**
+     * Wrap a iterable with filterable iterator for further filtering.
+     * @param iterable the iterable to be wrapped
+     * @param <B> generics object
+     * @return the filterable iterator containing the elements of the iterable
+     **/
+    @Contract("_ -> new")
+    public static <B> @NotNull FilterableIterator<B> wrap(Iterable<B> iterable) {
+        return new FilterableIterator<>(Validate.notNull(iterable).iterator());
+    }
+
+    /**
+     * Wrap a spliterator with filterable iterator for further filtering.
+     * @param spliterator the spliterator to be wrapped
+     * @param <B> generics object
+     * @return the filterable iterator containing the elements of the spliterator
+     **/
+    @Contract("_ -> new")
+    public static <B>  @NotNull FilterableIterator<B> wrap(Spliterator<B> spliterator) {
+        return new FilterableIterator<>(Spliterators.iterator(spliterator));
     }
 
     /**

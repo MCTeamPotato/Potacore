@@ -1,2 +1,2 @@
-# 0.2.1
-- Improve FilterableIterator
+# 0.2.2
+- Add two more wrap methods to FilterableIterator

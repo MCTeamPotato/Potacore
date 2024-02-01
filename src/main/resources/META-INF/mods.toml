@@ -10,10 +10,3 @@ authors = "TeamPotato"
 description = '''
 A Minecraft Mod.
 '''
-
-[[dependencies.potacore]]
-modId = "forge"
-mandatory = true
-versionRange = "[36,)"
-ordering = "NONE"
-side = "BOTH"

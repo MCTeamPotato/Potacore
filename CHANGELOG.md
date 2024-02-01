@@ -1,2 +1,2 @@
-# 0.2.3
-- Minor perference change
+# 0.2.4
+- Update outdated javadoc

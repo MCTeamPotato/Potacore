@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 /**
  * Merge two iterators together and iterate through them one by one.
- * Alternative of {@link com.google.common.collect.Iterators#concat(Iterator, Iterator)} but {@link Iterator#remove()} is not supported
+ * Alternative of {@link com.google.common.collect.Iterators#concat(Iterator, Iterator)}
  **/
 @SuppressWarnings("unused")
 public class MergedIterator<T> implements Iterator<T> {

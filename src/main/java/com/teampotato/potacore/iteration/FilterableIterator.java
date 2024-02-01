@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 public class FilterableIterator<K> implements Iterator<K> {
     private final Iterator<K> iterator;
     private @Nullable Predicate<K> filter;
-    private K next;
+    private @Nullable K next;
     private static final FilterableIterator<Object> EMPTY = wrap(Collections.emptyIterator());
     private final Supplier<Boolean> isEmptyFilter = Suppliers.memoize(() -> this.filter == null);
 
@@ -27,7 +27,7 @@ public class FilterableIterator<K> implements Iterator<K> {
      * @return an empty filterable iterator
      **/
     @SuppressWarnings("unchecked")
-    public static <H> FilterableIterator<H> empty() {
+    public static <H> @NotNull FilterableIterator<H> empty() {
         return (FilterableIterator<H>) EMPTY;
     }
 
@@ -73,7 +73,6 @@ public class FilterableIterator<K> implements Iterator<K> {
      * @param filter the filter to be added
      **/
     public void addFilter(Predicate<K> filter) {
-        if (this.next != null) throw new UnsupportedOperationException("FilterableIterator#addFilter is not supported after iteration begins");
         this.filter = (this.filter == null) ? filter : this.filter.and(filter);
     }
 

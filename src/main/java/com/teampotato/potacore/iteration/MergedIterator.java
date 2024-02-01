@@ -33,11 +33,11 @@ public class MergedIterator<T> implements Iterator<T> {
     }
 
     public boolean hasNext() {
-        return (this.useIterator1 && this.iterator1.hasNext()) || this.iterator2.hasNext();
+        return (this.isUseIterator1() && this.iterator1.hasNext()) || this.iterator2.hasNext();
     }
 
     public T next() {
-        if (this.useIterator1) {
+        if (this.isUseIterator1()) {
             if (this.iterator1.hasNext()) {
                 return this.iterator1.next();
             } else {
@@ -48,7 +48,7 @@ public class MergedIterator<T> implements Iterator<T> {
     }
 
     public void remove() {
-        if (this.useIterator1) {
+        if (this.isUseIterator1()) {
             this.iterator1.remove();
         } else {
             this.iterator2.remove();
@@ -56,7 +56,7 @@ public class MergedIterator<T> implements Iterator<T> {
     }
 
     /**
-     * @return whether or not this merged iterator is using first iterator
+     * @return whether or not this merged iterator is using the first iterator
      **/
     public boolean isUseIterator1() {
         return this.useIterator1;

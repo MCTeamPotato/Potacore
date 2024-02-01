@@ -1,2 +1,2 @@
-# 0.2.2
-- Add two more wrap methods to FilterableIterator
+# 0.2.3
+- Minor perference change

@@ -1,2 +1,2 @@
-# 0.2.5
-- Change FilterableIterator to be basically the same as the guava method
+# 0.2.6
+- Introduce CloseableIterator and makes FilterableIterator closeable

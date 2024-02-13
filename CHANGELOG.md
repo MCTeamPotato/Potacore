@@ -1,2 +1,2 @@
-# 0.2.7
-- Also close the internal current iterator when FilterableIterator is closing
+# 0.2.8
+- Allow closing multiple iterators in one method

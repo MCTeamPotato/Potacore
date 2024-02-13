@@ -23,6 +23,17 @@ public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
     }
 
     /**
+     * Close iterators if they're closeable.
+     * @param iterators The iterators to be closed
+     **/
+    static void close(final Iterator<?>... iterators) {
+        if (iterators == null) return;
+        for (Iterator<?> iterator : iterators) {
+            close(iterator);
+        }
+    }
+
+    /**
      * Closing exception logger
      **/
     Logger LOGGER = LogManager.getLogger(CloseableIterator.class);

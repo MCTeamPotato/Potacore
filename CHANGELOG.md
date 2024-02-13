@@ -1,2 +1,2 @@
-# 0.2.6
-- Introduce CloseableIterator and makes FilterableIterator closeable
+# 0.2.7
+- Also close the internal current iterator when FilterableIterator is closing

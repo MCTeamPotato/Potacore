@@ -69,6 +69,7 @@ public class FilterableIterator<K> implements CloseableIterator<K> {
 
     @Override
     public void close() {
+        CloseableIterator.close(this.iterator);
         this.next = null;
         this.iterator = null;
         this.filter = null;

@@ -28,11 +28,10 @@ public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
      * Close iterators if they're closeable.
      * @param iterators The iterators to be closed
      **/
-    @SuppressWarnings("ForLoopReplaceableByForEach") // for i loop is a bit more performant
     static void close(final @Nullable Iterator<?>... iterators) {
         if (iterators == null) return;
-        for (int index = 0; index < iterators.length; index++) {
-            close(iterators[index]);
+        for (Iterator<?> iterator : iterators) {
+            close(iterator);
         }
     }
 

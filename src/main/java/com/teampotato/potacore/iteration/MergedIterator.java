@@ -56,7 +56,7 @@ public class MergedIterator<T> implements Iterator<T> {
     }
 
     /**
-     * @return whether or not this merged iterator is using the first iterator
+     * @return whether this merged iterator is using the first iterator
      **/
     public boolean isUseIterator1() {
         return this.useIterator1;

@@ -1,2 +1,2 @@
-# 0.2.8
-- Allow closing multiple iterators in one method
+# 0.3.0
+- Add SimpleJsonConfig, util class for config management

@@ -21,8 +21,9 @@ import java.util.Map;
  * Example usage:
  * <pre>
  * {@code
- * SimpleJsonConfig config = new SimpleJsonConfig(Paths.get("config/pota-core.json"));
+ * SimpleJsonConfig config = new SimpleJsonConfig(Paths.get("config/config.json"));
  * config.put("enableFeature", true);
+ * config.saveConfig();
  * boolean featureEnabled = config.get("enableFeature", Boolean.class);
  * }
  * </pre>

@@ -1,2 +1,3 @@
-# 0.3.0
-- Add SimpleJsonConfig, util class for config management
+# 0.3.1
+- Add EnchantHelper, util class for enchantments removing.
+- Add ProjectileHelper, util class for entity&directEntity handling.

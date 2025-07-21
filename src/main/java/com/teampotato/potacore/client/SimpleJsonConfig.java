@@ -82,7 +82,7 @@ public class SimpleJsonConfig {
     public void saveConfig() {
         try {
             String json = this.gson.toJson(this.configMap);
-            Files.write(this.configPath, json.getBytes(StandardCharsets.UTF_8));
+            Files.writeString(this.configPath, json);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

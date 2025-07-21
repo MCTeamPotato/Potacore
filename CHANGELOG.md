@@ -1,3 +1,2 @@
-# 0.3.1
-- Add EnchantHelper, util class for enchantments removing.
-- Add ProjectileHelper, util class for entity&directEntity handling.
+# 0.3.2
+- Introduce PotatoEntityData to help data-storage.

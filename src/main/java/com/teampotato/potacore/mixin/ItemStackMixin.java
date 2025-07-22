@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class ItemStackMixin {
     @WrapMethod(method = "enchant")
     private void onEnchant(Enchantment enchantment, int level, Operation<Void> original) {
-        ItemEnchantEvent event = new ItemEnchantEvent((ItemStack) (Object) this, enchantment, level);
+        ItemEnchantEvent event = new ItemEnchantEvent((ItemStack) (Object) this, enchantment, level, false);
         boolean cancel = MinecraftForge.EVENT_BUS.post(event);
         if (!cancel) original.call(event.getEnchantment(), event.getLevel());
     }

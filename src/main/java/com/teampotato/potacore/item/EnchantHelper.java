@@ -10,6 +10,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 public class EnchantHelper {
+    public static boolean hasEnchantment(@NotNull ItemStack stack, Enchantment enchantment) {
+        return stack.getEnchantmentLevel(enchantment) != 0;
+    }
+
+    public static boolean hasEnchantment(@NotNull ItemStack stack, ResourceLocation id) {
+        return stack.getEnchantmentLevel(ForgeRegistries.ENCHANTMENTS.getValue(id)) != 0;
+    }
+
     public static int removeEnchantments(ItemStack stack, @NotNull Iterable<Enchantment> enchantments) {
         int count = 0;
         for (Enchantment enchantment : enchantments) {

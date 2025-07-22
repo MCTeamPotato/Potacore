@@ -2,17 +2,16 @@
 ``````
 repositories {
     maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
+        url "https://cursemaven.com"
         content {
-            includeGroup "maven.modrinth"
+            includeGroup "curse.maven"
         }
     }
 }
 
 dependencies {
-    modImplementation("maven.modrinth:potacore:{potacore_version}")
-    modImplementation("maven.modrinth:potacore:{potacore_version}:universal-sources")
-    modImplementation("maven.modrinth:potacore:{potacore_version}:universal-javadoc")
+    modImplementation("curse.maven:potacore-951521:${project.potacore_id}")
+    modImplementation("curse.maven:potacore-951521:${project.potacore_id}")
+    modImplementation("curse.maven:potacore-951521:${project.potacore_id}")
 }
 ``````

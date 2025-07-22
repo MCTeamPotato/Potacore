@@ -6,14 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 
-/**
- * Interface to concat {@link Iterator} and {@link AutoCloseable}
- **/
 public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
-    /**
-     * Close a iterator if it is closeable.
-     * @param iterator The iterator to be closed
-     **/
     static void close(@Nullable Iterator<?> iterator) {
         if (iterator == null) return;
         try {
@@ -24,10 +17,6 @@ public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
         }
     }
 
-    /**
-     * Close iterators if they're closeable.
-     * @param iterators The iterators to be closed
-     **/
     static void close(final @Nullable Iterator<?>... iterators) {
         if (iterators == null) return;
         for (Iterator<?> iterator : iterators) {
@@ -35,9 +24,6 @@ public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
         }
     }
 
-    /**
-     * Closing exception logger
-     **/
     Logger LOGGER = LogManager.getLogger(CloseableIterator.class);
 }
 

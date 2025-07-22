@@ -56,7 +56,6 @@ processResources {
 }
 
 java {
-    withJavadocJar()
     withSourcesJar()
 
     if (version.startsWith("1.16.5")) {
@@ -86,7 +85,7 @@ modrinth {
     gameVersions.add(minecraft_version)
     loaders = ["forge"]
     versionType = "release"
-    additionalFiles = [sourcesJar, javadocJar]
+    additionalFiles = [sourcesJar]
     changelog.set(currentChangeLog)
 }
 
@@ -104,10 +103,7 @@ tasks.register("publishCurseForge", TaskPublishCurseForge) {
     mainFile.addGameVersion(minecraft_version)
 
     def sourcesFile = mainFile.withAdditionalFile(sourcesJar)
-    def javadocFile = mainFile.withAdditionalFile(javadocJar)
 
     sourcesFile.changelog = currentChangeLog
     sourcesFile.changelogType = "markdown"
-    javadocFile.changelog = currentChangeLog
-    javadocFile.changelogType = "markdown"
 }

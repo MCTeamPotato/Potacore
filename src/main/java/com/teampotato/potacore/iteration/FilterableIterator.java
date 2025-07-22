@@ -8,19 +8,11 @@ import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/**
- * Alternative of {@link com.google.common.collect.Iterators#filter(Iterator, com.google.common.base.Predicate)}, but auto closeable
- * @param <K> generics object
- **/
 public class FilterableIterator<K> implements CloseableIterator<K> {
     private @Nullable Predicate<K> filter;
     private @Nullable Iterator<K> iterator;
     private @Nullable K next;
 
-    /**
-     * @param iterator The iterator to be filtered
-     * @param filter The filter
-     **/
     public FilterableIterator(@NotNull Iterator<K> iterator, @NotNull Predicate<K> filter) {
         this.filter = filter;
         this.iterator = iterator;

@@ -11,7 +11,5 @@ repositories {
 
 dependencies {
     modImplementation("curse.maven:potacore-951521:${project.potacore_id}")
-    modImplementation("curse.maven:potacore-951521:${project.potacore_id}")
-    modImplementation("curse.maven:potacore-951521:${project.potacore_id}")
 }
 ``````

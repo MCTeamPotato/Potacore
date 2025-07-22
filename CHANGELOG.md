@@ -1,2 +1,3 @@
-# 0.3.2
-- Introduce PotatoEntityData to help data-storage.
+# 0.3.3
+- Make PotatoEntityData internal map thread-safe
+- Abandon javadoc 

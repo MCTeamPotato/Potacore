@@ -60,7 +60,7 @@ dependencies {
 
 shadowJar {
     configurations = [project.configurations.shadow]
-    relocate "com.llamalad7.mixinextras", "me.kall.lead.mixinextras"
+    relocate "com.llamalad7.mixinextras", "me.kall.potacore.mixinextras"
     mergeServiceFiles()
 
     archiveClassifier = "dev-shadow"

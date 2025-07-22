@@ -1,3 +1,4 @@
-# 0.3.3
-- Make PotatoEntityData internal map thread-safe
-- Abandon javadoc 
+# 0.4.0
+- Add EnchantHelper#hasEnchantment method
+- Add ItemEnchantEvent & ItemEnchantEvent.EnchantedBook events
+- MixinExtras is included for event implementation need (that's why the jar file is large)

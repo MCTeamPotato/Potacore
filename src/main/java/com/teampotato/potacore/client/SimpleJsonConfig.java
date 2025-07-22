@@ -3,19 +3,19 @@ package com.teampotato.potacore.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
 
 public class SimpleJsonConfig {
     private final Path configPath;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private Map<String, Object> configMap = new HashMap<>();
+    private Map<String, Object> configMap = new Object2ObjectOpenHashMap<>();
 
     public SimpleJsonConfig(Path configPath) {
         try {
@@ -32,17 +32,17 @@ public class SimpleJsonConfig {
             String json = new String(bytes, StandardCharsets.UTF_8);
 
             if (json.trim().isEmpty()) {
-                this.configMap = new HashMap<>();
+                this.configMap = new Object2ObjectOpenHashMap<>();
             } else {
                 this.configMap = this.gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
                 if (this.configMap == null) {
-                    this.configMap = new HashMap<>();
+                    this.configMap = new Object2ObjectOpenHashMap<>();
                 }
             }
         } else {
             Files.createDirectories(this.configPath.getParent());
             Files.createFile(this.configPath);
-            this.configMap = new HashMap<>();
+            this.configMap = new Object2ObjectOpenHashMap<>();
             this.saveConfig();
         }
     }

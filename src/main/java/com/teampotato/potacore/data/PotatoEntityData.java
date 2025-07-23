@@ -69,7 +69,7 @@ public class PotatoEntityData extends SavedData {
     }
 
     public void setData(@NotNull UUID entity, @NotNull String key, @NotNull Object value) {
-        entityData.computeIfAbsent(entity, u -> new ConcurrentHashMap<>()).put(key, value);
+        entityData.computeIfAbsent(entity, id -> new ConcurrentHashMap<>()).put(key, value);
         setDirty();
     }
 

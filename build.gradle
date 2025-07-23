@@ -56,6 +56,8 @@ dependencies {
     }
     forge "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
     shadow(annotationProcessor("io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"))
+
+    shadow(implementation("org.openjdk.jol:jol-core:0.17"))
 }
 
 shadowJar {

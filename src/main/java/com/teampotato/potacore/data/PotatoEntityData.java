@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -107,15 +108,15 @@ public class PotatoEntityData extends SavedData {
         return type.isInstance(val) ? (T) val : null;
     }
 
-    public @Nullable String getString(UUID uuid, String key) { return getAs(uuid, key, String.class); }
-    public @Nullable Integer getInt(UUID uuid, String key) { return getAs(uuid, key, Integer.class); }
-    public @Nullable Double getDouble(UUID uuid, String key) { return getAs(uuid, key, Double.class); }
-    public @Nullable Float getFloat(UUID uuid, String key) { return getAs(uuid, key, Float.class); }
-    public @Nullable Long getLong(UUID uuid, String key) { return getAs(uuid, key, Long.class); }
-    public @Nullable Short getShort(UUID uuid, String key) { return getAs(uuid, key, Short.class); }
-    public @Nullable Byte getByte(UUID uuid, String key) { return getAs(uuid, key, Byte.class); }
-    public @Nullable ListTag getList(UUID uuid, String key) { return getAs(uuid, key, ListTag.class); }
-    public @Nullable CompoundTag getCompound(UUID uuid, String key) { return getAs(uuid, key, CompoundTag.class); }
+    public Optional<String> getString(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, String.class)); }
+    public Optional<Integer> getInt(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Integer.class)); }
+    public Optional<Double> getDouble(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Double.class)); }
+    public Optional<Float> getFloat(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Float.class)); }
+    public Optional<Long> getLong(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Long.class)); }
+    public Optional<Short> getShort(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Short.class)); }
+    public Optional<Byte> getByte(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Byte.class)); }
+    public Optional<ListTag> getList(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, ListTag.class)); }
+    public Optional<CompoundTag> getCompound(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, CompoundTag.class)); }
 
     public void clearAll() {
         this.entityData.clear();

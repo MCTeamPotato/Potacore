@@ -11,19 +11,18 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.LogicalSide;
 import org.jetbrains.annotations.NotNull;
-import org.openjdk.jol.info.ClassLayout;
 
 import java.util.Collections;
 import java.util.Map;
@@ -64,6 +63,15 @@ public class EntitiesInChunkData {
         entities.remove(dim);
     }
 
+    public static void addEntity(@NotNull ServerLevel level, @NotNull LivingEntity entity) {
+        if (level.isLoaded(entity.blockPosition()) && entity.isAlive()) {
+            entities
+                    .computeIfAbsent(level.dimension().location(), key -> map())
+                    .computeIfAbsent(entity.chunkPosition(), key -> set())
+                    .add(entity.getUUID());
+        }
+    }
+
     public static void register() {
         IEventBus bus = MinecraftForge.EVENT_BUS;
         bus.addListener(EntitiesInChunkData::onChunkUnLoad);
@@ -72,6 +80,7 @@ public class EntitiesInChunkData {
         bus.addListener(EventPriority.LOWEST, EntitiesInChunkData::onLeave);
         bus.addListener(EventPriority.LOWEST, EntitiesInChunkData::onDie);
         bus.addListener(EventPriority.LOWEST, EntitiesInChunkData::onTravel);
+        bus.addListener(EventPriority.LOWEST, EntitiesInChunkData::onDespawn);
         bus.addListener(EntitiesInChunkData::onShutdown);
     }
 
@@ -90,11 +99,8 @@ public class EntitiesInChunkData {
     }
 
     private static void onJoin(@NotNull EntityJoinLevelEvent event) {
-        if (!event.isCanceled() && event.getEntity() instanceof LivingEntity entity && entity.level() instanceof ServerLevel level && level.isLoaded(entity.blockPosition())) {
-            entities
-                    .computeIfAbsent(level.dimension().location(), key -> map())
-                    .computeIfAbsent(entity.chunkPosition(), key -> set())
-                    .add(entity.getUUID());
+        if (!event.isCanceled() && event.getEntity() instanceof LivingEntity entity && entity.level() instanceof ServerLevel level) {
+            addEntity(level, entity);
         }
     }
 
@@ -118,20 +124,14 @@ public class EntitiesInChunkData {
         }
     }
 
-    private static void onShutdown(ServerStoppingEvent event) {
-        entities.clear();
+    private static void onDespawn(MobSpawnEvent.AllowDespawn event) {
+        if (event.getResult().equals(Event.Result.DENY)) return;
+        if (event.getEntity().level() instanceof ServerLevel level) {
+            removeEntity(event.getEntity(), level);
+        }
     }
 
-    public static final class Debug {
-        private static int tick = 1200;
-
-        public static void onTick(TickEvent.LevelTickEvent event) {
-            if (event.side != LogicalSide.SERVER && event.phase != TickEvent.Phase.END) return;
-            tick--;
-            if (tick <= 0) {
-                tick = 1200;
-                System.out.println(ClassLayout.parseInstance(entities).toPrintable());
-            }
-        }
+    private static void onShutdown(ServerStoppingEvent event) {
+        entities.clear();
     }
 }

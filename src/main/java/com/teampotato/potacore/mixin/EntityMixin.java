@@ -1,13 +1,11 @@
 package com.teampotato.potacore.mixin;
 
 import com.teampotato.potacore.data.EntitiesInChunkData;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,10 +19,6 @@ import java.util.UUID;
 @Mixin(Entity.class)
 public abstract class EntityMixin {
     @Shadow private Level level;
-
-    @Shadow protected UUID uuid;
-
-    @Shadow private BlockPos blockPosition;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;createInsecureUUID(Lnet/minecraft/util/RandomSource;)Ljava/util/UUID;"), require = 0)
     private UUID initId(RandomSource randomSource) {
@@ -42,10 +36,7 @@ public abstract class EntityMixin {
         Entity self = (Entity) (Object) this;
         if (self instanceof LivingEntity entity && entity.level() instanceof ServerLevel serverLevel) {
             EntitiesInChunkData.removeEntity(entity, serverLevel);
-            EntitiesInChunkData.entities
-                    .computeIfAbsent(this.level.dimension().location(), key -> EntitiesInChunkData.map())
-                    .computeIfAbsent(new ChunkPos(this.blockPosition), key -> EntitiesInChunkData.set())
-                    .add(this.uuid);
+            EntitiesInChunkData.addEntity(serverLevel, entity);
         }
     }
 }

@@ -51,5 +51,4 @@ public class ItemEnchantEvent extends Event {
                 ", isEnchantedBook=" + isEnchantedBook +
                 '}';
     }
-
 }

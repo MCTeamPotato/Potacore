@@ -1,7 +1,6 @@
 package com.teampotato.potacore;
 
 import com.teampotato.potacore.data.EntitiesInChunkData;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +12,5 @@ public class Potacore {
 
     public Potacore() {
         EntitiesInChunkData.register();
-        MinecraftForge.EVENT_BUS.addListener(EntitiesInChunkData.Debug::onTick);
     }
 }

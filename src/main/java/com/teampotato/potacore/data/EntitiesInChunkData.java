@@ -22,6 +22,7 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -36,14 +37,17 @@ public class EntitiesInChunkData {
         return ENTITIES.getOrDefault(level.dimension().location(), Collections.emptyMap()).getOrDefault(pos, Collections.emptySet());
     }
 
+    @ApiStatus.Internal
     public static @NotNull Map<ChunkPos, Set<UUID>> map() {
         return Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
     }
 
+    @ApiStatus.Internal
     public static @NotNull Set<UUID> set() {
         return ObjectSets.synchronize(new ObjectOpenHashSet<>());
     }
 
+    @ApiStatus.Internal
     public static void removeEntity(@NotNull LivingEntity entity, @NotNull ServerLevel level) {
         ChunkPos chunkPos = entity.chunkPosition();
         ResourceLocation dim = level.dimension().location();
@@ -63,6 +67,7 @@ public class EntitiesInChunkData {
         ENTITIES.remove(dim);
     }
 
+    @ApiStatus.Internal
     public static void addEntity(@NotNull ServerLevel level, @NotNull LivingEntity entity) {
         if (level.isLoaded(entity.blockPosition()) && entity.isAlive()) {
             ChunkPos pos = entity.chunkPosition();

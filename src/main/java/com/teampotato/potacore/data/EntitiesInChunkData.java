@@ -30,10 +30,10 @@ import java.util.Set;
 import java.util.UUID;
 
 public class EntitiesInChunkData {
-    public static final Map<ResourceLocation, Map<ChunkPos, Set<UUID>>> entities = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
+    public static final Map<ResourceLocation, Map<ChunkPos, Set<UUID>>> ENTITIES = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
 
     public static Set<UUID> getEntitiesInChunk(@NotNull Level level, ChunkPos pos) {
-        return entities.getOrDefault(level.dimension().location(), Collections.emptyMap()).getOrDefault(pos, Collections.emptySet());
+        return ENTITIES.getOrDefault(level.dimension().location(), Collections.emptyMap()).getOrDefault(pos, Collections.emptySet());
     }
 
     public static @NotNull Map<ChunkPos, Set<UUID>> map() {
@@ -48,26 +48,28 @@ public class EntitiesInChunkData {
         ChunkPos chunkPos = entity.chunkPosition();
         ResourceLocation dim = level.dimension().location();
 
-        Map<ChunkPos, Set<UUID>> entitiesInChunk = entities.getOrDefault(dim, null);
+        Map<ChunkPos, Set<UUID>> entitiesInChunk = ENTITIES.getOrDefault(dim, null);
         if (entitiesInChunk == null) return;
 
         Set<UUID> entitySet = entitiesInChunk.getOrDefault(chunkPos, null);
         if (entitySet == null) return;
-
         entitySet.remove(entity.getUUID());
+
         if (!entitySet.isEmpty()) return;
 
         entitiesInChunk.remove(chunkPos);
         if (!entitiesInChunk.isEmpty()) return;
 
-        entities.remove(dim);
+        ENTITIES.remove(dim);
     }
 
     public static void addEntity(@NotNull ServerLevel level, @NotNull LivingEntity entity) {
         if (level.isLoaded(entity.blockPosition()) && entity.isAlive()) {
-            entities
-                    .computeIfAbsent(level.dimension().location(), key -> map())
-                    .computeIfAbsent(entity.chunkPosition(), key -> set())
+            ChunkPos pos = entity.chunkPosition();
+            ResourceLocation dim = level.dimension().location();
+            ENTITIES
+                    .computeIfAbsent(dim, key -> map())
+                    .computeIfAbsent(pos, key -> set())
                     .add(entity.getUUID());
         }
     }
@@ -86,7 +88,7 @@ public class EntitiesInChunkData {
 
     private static void onChunkUnLoad(ChunkEvent.@NotNull Unload event) {
         if (event.getLevel() instanceof ServerLevel level && event.getChunk() instanceof LevelChunk chunk) {
-            Map<ChunkPos, Set<UUID>> entitiesInChunk = entities.getOrDefault(level.dimension().location(), null);
+            Map<ChunkPos, Set<UUID>> entitiesInChunk = ENTITIES.getOrDefault(level.dimension().location(), null);
             if (entitiesInChunk == null) return;
             entitiesInChunk.remove(chunk.getPos());
         }
@@ -94,7 +96,7 @@ public class EntitiesInChunkData {
 
     private static void onLevelUnLoad(LevelEvent.@NotNull Unload event) {
         if (event.getLevel() instanceof ServerLevel level) {
-            entities.remove(level.dimension().location());
+            ENTITIES.remove(level.dimension().location());
         }
     }
 
@@ -124,7 +126,7 @@ public class EntitiesInChunkData {
         }
     }
 
-    private static void onDespawn(MobSpawnEvent.AllowDespawn event) {
+    private static void onDespawn(MobSpawnEvent.@NotNull AllowDespawn event) {
         if (event.getResult().equals(Event.Result.DENY)) return;
         if (event.getEntity().level() instanceof ServerLevel level) {
             removeEntity(event.getEntity(), level);
@@ -132,6 +134,6 @@ public class EntitiesInChunkData {
     }
 
     private static void onShutdown(ServerStoppingEvent event) {
-        entities.clear();
+        ENTITIES.clear();
     }
 }

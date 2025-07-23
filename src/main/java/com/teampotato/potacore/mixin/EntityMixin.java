@@ -6,6 +6,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,6 +21,8 @@ import java.util.UUID;
 public abstract class EntityMixin {
     @Shadow private Level level;
 
+    @Shadow private ChunkPos chunkPosition;
+
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;createInsecureUUID(Lnet/minecraft/util/RandomSource;)Ljava/util/UUID;"), require = 0)
     private UUID initId(RandomSource randomSource) {
         UUID id = Mth.createInsecureUUID(randomSource);
@@ -32,10 +35,17 @@ public abstract class EntityMixin {
     }
 
     @Inject(method = "setPosRaw", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/ChunkPos;<init>(Lnet/minecraft/core/BlockPos;)V"))
-    private void onUpdateChunkPos(double x, double y, double z, CallbackInfo ci) {
+    private void chunkPosUpdatePre(double x, double y, double z, CallbackInfo ci) {
         Entity self = (Entity) (Object) this;
         if (self instanceof LivingEntity entity && entity.level() instanceof ServerLevel serverLevel) {
             EntitiesInChunkData.removeEntity(entity, serverLevel);
+        }
+    }
+
+    @Inject(method = "setPosRaw", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/ChunkPos;<init>(Lnet/minecraft/core/BlockPos;)V", shift = At.Shift.AFTER))
+    private void chunkPosUpdatePost(double x, double y, double z, CallbackInfo ci) {
+        Entity self = (Entity) (Object) this;
+        if (self instanceof LivingEntity entity && entity.level() instanceof ServerLevel serverLevel) {
             EntitiesInChunkData.addEntity(serverLevel, entity);
         }
     }

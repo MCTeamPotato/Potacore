@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ public class SimpleJsonConfig {
     private Map<String, Object> configMap = new Object2ObjectOpenHashMap<>();
 
     public SimpleJsonConfig(Path configPath) {
+        if (!FMLLoader.getDist().isClient()) throw new RuntimeException("SimpleJsonConfig only supports client side!");
         try {
             this.configPath = configPath;
             this.loadConfig();

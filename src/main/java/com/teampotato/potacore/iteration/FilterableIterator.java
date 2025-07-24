@@ -8,9 +8,9 @@ import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class FilterableIterator<K> implements CloseableIterator<K> {
-    private @Nullable Predicate<K> filter;
-    private @Nullable Iterator<K> iterator;
+public class FilterableIterator<K> implements Iterator<K> {
+    private final Predicate<K> filter;
+    private final Iterator<K> iterator;
     private @Nullable K next;
 
     public FilterableIterator(@NotNull Iterator<K> iterator, @NotNull Predicate<K> filter) {
@@ -19,7 +19,6 @@ public class FilterableIterator<K> implements CloseableIterator<K> {
     }
 
     private void advance() {
-        if (this.iterator == null || this.filter == null) return;
         while (true) {
             if (this.iterator.hasNext()) {
                 final K candidate = this.iterator.next();
@@ -55,15 +54,6 @@ public class FilterableIterator<K> implements CloseableIterator<K> {
 
     @Override
     public void remove() {
-        if (this.iterator == null) return;
         this.iterator.remove();
-    }
-
-    @Override
-    public void close() {
-        CloseableIterator.close(this.iterator);
-        this.next = null;
-        this.iterator = null;
-        this.filter = null;
     }
 }

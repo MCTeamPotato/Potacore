@@ -18,14 +18,17 @@ public class SimpleJsonConfig {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private Map<String, Object> configMap = new Object2ObjectOpenHashMap<>();
 
-    public SimpleJsonConfig(Path configPath) {
-        if (!FMLLoader.getDist().isClient()) throw new RuntimeException("SimpleJsonConfig only supports client side!");
+    private SimpleJsonConfig(Path configPath) {
         try {
             this.configPath = configPath;
             this.loadConfig();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static @Nullable SimpleJsonConfig create(Path configPath) {
+        return FMLLoader.getDist().isClient() ? new SimpleJsonConfig(configPath) : null;
     }
 
     private void loadConfig() throws IOException {

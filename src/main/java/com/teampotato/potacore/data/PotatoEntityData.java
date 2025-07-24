@@ -74,13 +74,13 @@ public class PotatoEntityData extends SavedData {
         return uuid + ":" + key;
     }
 
-    public void setData(@NotNull UUID entity, @NotNull String key, @NotNull Object value) {
+    public void addData(@NotNull UUID entity, @NotNull String key, @NotNull Object value) {
         entityData.put(createKey(entity, key), value);
         setDirty();
     }
 
-    public void setDataMap(@NotNull UUID entity, @NotNull Map<String, Object> dataMap) {
-        dataMap.forEach((key, value) -> setData(entity, key, value));
+    public void addDataMap(@NotNull UUID entity, @NotNull Map<String, Object> dataMap) {
+        dataMap.forEach((key, value) -> addData(entity, key, value));
         setDirty();
     }
 

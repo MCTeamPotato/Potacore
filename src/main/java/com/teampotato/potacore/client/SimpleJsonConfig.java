@@ -1,5 +1,6 @@
 package com.teampotato.potacore.client;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -69,9 +70,11 @@ public class SimpleJsonConfig {
         }
     }
 
-    public void put(String key, Object value) {
+    @CanIgnoreReturnValue
+    public SimpleJsonConfig put(String key, Object value) {
         this.configMap.put(key, value);
         this.saveConfig();
+        return this;
     }
 
     @Nullable

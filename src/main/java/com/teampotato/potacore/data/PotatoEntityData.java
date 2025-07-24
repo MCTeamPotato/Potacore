@@ -7,6 +7,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PotatoEntityData extends SavedData {
-    private final Map<UUID, Map<String, Object>> entityData = new ConcurrentHashMap<>();
+    private final Map<String, Object> entityData = new ConcurrentHashMap<>();
 
     public static @NotNull PotatoEntityData get(@NotNull ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(PotatoEntityData::load, PotatoEntityData::new, "potato_entity_data");
@@ -34,16 +35,14 @@ public class PotatoEntityData extends SavedData {
             try {
                 UUID uuid = UUID.fromString(uuidStr);
                 CompoundTag entityTag = tag.getCompound(uuidStr);
-                Map<String, Object> dataMap = new ConcurrentHashMap<>();
                 for (String key : entityTag.getAllKeys()) {
                     Object value = NBTUtils.fromTag(entityTag.get(key));
                     if (value != null) {
-                        dataMap.put(key, value);
+                        entityData.put(createKey(uuid, key), value);
                     } else {
                         Potacore.LOGGER.error("Unsupported tag type for key '{}' in UUID '{}'", key, uuidStr);
                     }
                 }
-                if (!dataMap.isEmpty()) entityData.put(uuid, dataMap);
             } catch (IllegalArgumentException e) {
                 Potacore.LOGGER.error("Invalid UUID in saved data: {}", uuidStr, e);
             }
@@ -52,54 +51,51 @@ public class PotatoEntityData extends SavedData {
 
     @Override
     public @NotNull CompoundTag save(@NotNull CompoundTag compoundTag) {
-        entityData.forEach((uuid, dataMap) -> {
-            if (dataMap.isEmpty()) return;
-
-            CompoundTag entityTag = new CompoundTag();
-            dataMap.forEach((key, value) -> {
+        entityData.forEach((compositeKey, value) -> {
+            String[] parts = compositeKey.split(":");
+            if (parts.length == 2) {
+                UUID uuid = UUID.fromString(parts[0]);
+                String key = parts[1];
+                CompoundTag entityTag = new CompoundTag();
                 Tag tag = NBTUtils.toTag(value);
                 if (tag != null) {
                     entityTag.put(key, tag);
+                    compoundTag.put(uuid.toString(), entityTag);
                 } else {
                     Potacore.LOGGER.error("Unsupported value type for key '{}' in UUID '{}'", key, uuid);
                 }
-            });
-            compoundTag.put(uuid.toString(), entityTag);
+            }
         });
         return compoundTag;
     }
 
+    @Contract(pure = true)
+    private @NotNull String createKey(@NotNull UUID uuid, String key) {
+        return uuid + ":" + key;
+    }
+
     public void setData(@NotNull UUID entity, @NotNull String key, @NotNull Object value) {
-        entityData.computeIfAbsent(entity, id -> new ConcurrentHashMap<>()).put(key, value);
+        entityData.put(createKey(entity, key), value);
         setDirty();
     }
 
     public void setDataMap(@NotNull UUID entity, @NotNull Map<String, Object> dataMap) {
-        entityData.put(entity, new ConcurrentHashMap<>(dataMap));
+        dataMap.forEach((key, value) -> setData(entity, key, value));
         setDirty();
     }
 
     public void removeData(@NotNull UUID entity, @NotNull String key) {
-        Map<String, Object> map = entityData.get(entity);
-        if (map != null) {
-            map.remove(key);
-            setDirty();
-        }
+        entityData.remove(createKey(entity, key));
+        setDirty();
     }
 
     public void removeData(@NotNull UUID entity) {
-        if (entityData.remove(entity) != null) {
-            setDirty();
-        }
-    }
-
-    public @NotNull Map<String, Object> getDataMap(@NotNull UUID uuid) {
-        return entityData.computeIfAbsent(uuid, u -> new ConcurrentHashMap<>());
+        entityData.keySet().removeIf(key -> key.startsWith(entity.toString()));
+        setDirty();
     }
 
     public @Nullable Object getData(@NotNull UUID entity, @NotNull String key) {
-        Map<String, Object> map = entityData.get(entity);
-        return (map != null) ? map.get(key) : null;
+        return entityData.get(createKey(entity, key));
     }
 
     @SuppressWarnings("unchecked")
@@ -108,15 +104,15 @@ public class PotatoEntityData extends SavedData {
         return type.isInstance(val) ? (T) val : null;
     }
 
-    public Optional<String> getString(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, String.class)); }
-    public Optional<Integer> getInt(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Integer.class)); }
-    public Optional<Double> getDouble(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Double.class)); }
-    public Optional<Float> getFloat(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Float.class)); }
-    public Optional<Long> getLong(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Long.class)); }
-    public Optional<Short> getShort(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Short.class)); }
-    public Optional<Byte> getByte(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, Byte.class)); }
-    public Optional<ListTag> getList(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, ListTag.class)); }
-    public Optional<CompoundTag> getCompound(UUID uuid, String key) { return Optional.ofNullable(getAs(uuid, key, CompoundTag.class)); }
+    public Optional<String> getString(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, String.class));}
+    public Optional<Integer> getInt(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, Integer.class));}
+    public Optional<Double> getDouble(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, Double.class));}
+    public Optional<Float> getFloat(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, Float.class));}
+    public Optional<Long> getLong(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, Long.class));}
+    public Optional<Short> getShort(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, Short.class));}
+    public Optional<Byte> getByte(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, Byte.class));}
+    public Optional<ListTag> getList(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, ListTag.class));}
+    public Optional<CompoundTag> getCompound(UUID uuid, String key) {return Optional.ofNullable(getAs(uuid, key, CompoundTag.class));}
 
     public void clearAll() {
         this.entityData.clear();

@@ -12,7 +12,8 @@
   "mixins": [
     "EnchantedBookItemMixin",
     "EntityMixin",
-    "ItemStackMixin"
+    "ItemStackMixin",
+    "ServerLevelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

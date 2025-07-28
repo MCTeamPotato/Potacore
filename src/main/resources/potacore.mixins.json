@@ -10,8 +10,11 @@
   "client": [
   ],
   "mixins": [
+    "impl.BlockMixin",
     "EnchantedBookItemMixin",
     "EntityMixin",
+    "impl.EntityTypeMixin",
+    "impl.ItemMixin",
     "ItemStackMixin",
     "ServerLevelMixin"
   ],

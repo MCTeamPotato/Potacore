@@ -1,2 +1,2 @@
-# 0.4.1
-- Merge ItemEnchantEvent & ItemEnchantEvent.EnchantedBook. Now ItemEnchantEvent has "isEnchantedBook" boolean check.
+# 0.4.2
+- Introduce RegistryNameContainer#getRegistryName, helper to get the registry name of block/item/entityType

@@ -28,7 +28,7 @@ jobs:
             ~/.gradle/wrapper
             .gradle
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'build.gradle') }}
-      - uses: gradle/wrapper-validation-action@v1
+      - uses: gradle/wrapper-validation-action@v3
       - run: |
           chmod +x gradlew
           ./gradlew build publishCurseForge publish modrinth --stacktrace -Porg.gradle.parallel.threads=4

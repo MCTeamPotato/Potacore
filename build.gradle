@@ -107,7 +107,7 @@ modrinth {
     projectId = "${archives_name}"
     versionNumber = "${mod_version}"
     uploadFile = remapJar
-    gameVersions.add(minecraft_version)
+    gameVersions = [minecraft_version]
     loaders = ["forge"]
     versionType = "release"
     additionalFiles = [sourcesJar]

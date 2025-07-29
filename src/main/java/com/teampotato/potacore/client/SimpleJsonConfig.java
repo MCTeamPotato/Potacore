@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraftforge.fml.loading.FMLLoader;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 
 public class SimpleJsonConfig {
     private final Path configPath;
@@ -28,8 +30,8 @@ public class SimpleJsonConfig {
         }
     }
 
-    public static @Nullable SimpleJsonConfig create(Path configPath) {
-        return FMLLoader.getDist().isClient() ? new SimpleJsonConfig(configPath) : null;
+    public static @NotNull Optional<SimpleJsonConfig> create(Path configPath) {
+        return Optional.ofNullable(FMLLoader.getDist().isClient() ? new SimpleJsonConfig(configPath) : null);
     }
 
     private void loadConfig() throws IOException {
@@ -40,10 +42,8 @@ public class SimpleJsonConfig {
             if (json.trim().isEmpty()) {
                 this.configMap = new Object2ObjectOpenHashMap<>();
             } else {
-                this.configMap = this.gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-                if (this.configMap == null) {
-                    this.configMap = new Object2ObjectOpenHashMap<>();
-                }
+                Map<String, Object> jsonMap = this.gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
+                this.configMap = jsonMap == null ? new Object2ObjectOpenHashMap<>() : new Object2ObjectOpenHashMap<>(jsonMap);
             }
         } else {
             Files.createDirectories(this.configPath.getParent());
@@ -53,10 +53,12 @@ public class SimpleJsonConfig {
         }
     }
 
-    public void saveConfig() {
+    @CanIgnoreReturnValue
+    public SimpleJsonConfig saveConfig() {
         try {
             String json = this.gson.toJson(this.configMap);
             Files.writeString(this.configPath, json);
+            return this;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -73,7 +75,6 @@ public class SimpleJsonConfig {
     @CanIgnoreReturnValue
     public SimpleJsonConfig put(String key, Object value) {
         this.configMap.put(key, value);
-        this.saveConfig();
         return this;
     }
 

@@ -12,14 +12,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityLeaveWorldEvent;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
-import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -129,26 +129,26 @@ public class EntitiesInChunkData {
     }
 
     private static void onChunkUnLoad(ChunkEvent.@NotNull Unload event) {
-        if (event.getLevel() instanceof ServerLevel level && event.getChunk() instanceof LevelChunk chunk) {
+        if (event.getWorld() instanceof ServerLevel level && event.getChunk() instanceof LevelChunk chunk) {
             Map<ChunkPos, Set<UUID>> entitiesInChunk = ENTITIES.get(level.dimension().location());
             if (entitiesInChunk == null) return;
             entitiesInChunk.remove(chunk.getPos());
         }
     }
 
-    private static void onLevelUnLoad(LevelEvent.@NotNull Unload event) {
-        if (event.getLevel() instanceof ServerLevel level) {
+    private static void onLevelUnLoad(WorldEvent.@NotNull Unload event) {
+        if (event.getWorld() instanceof ServerLevel level) {
             ENTITIES.remove(level.dimension().location());
         }
     }
 
-    private static void onJoin(@NotNull EntityJoinLevelEvent event) {
+    private static void onJoin(@NotNull EntityJoinWorldEvent event) {
         if (!event.isCanceled() && event.getEntity().level instanceof ServerLevel level) {
             addEntity(level, event.getEntity());
         }
     }
 
-    private static void onLeave(@NotNull EntityLeaveLevelEvent event) {
+    private static void onLeave(@NotNull EntityLeaveWorldEvent event) {
         if (!event.isCanceled() && event.getEntity().level instanceof ServerLevel level) {
             removeEntity(event.getEntity(), level);
         }
@@ -156,7 +156,7 @@ public class EntitiesInChunkData {
 
     private static void onDie(@NotNull LivingDeathEvent event) {
         if (event.isCanceled()) return;
-        LivingEntity entity = event.getEntity();
+        LivingEntity entity = event.getEntityLiving();
         if (entity.level instanceof ServerLevel level) {
             removeEntity(entity, level);
         }

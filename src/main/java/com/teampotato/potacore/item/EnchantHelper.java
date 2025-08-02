@@ -6,16 +6,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 public class EnchantHelper {
     public static boolean hasEnchantment(@NotNull ItemStack stack, Enchantment enchantment) {
-        return stack.getEnchantmentLevel(enchantment) != 0;
+        return EnchantmentHelper.getEnchantments(stack).containsKey(enchantment);
     }
 
     public static boolean hasEnchantment(@NotNull ItemStack stack, ResourceLocation id) {
-        return stack.getEnchantmentLevel(ForgeRegistries.ENCHANTMENTS.getValue(id)) != 0;
+        return EnchantmentHelper.getEnchantments(stack).containsKey(ForgeRegistries.ENCHANTMENTS.getValue(id));
     }
 
     public static int removeEnchantments(ItemStack stack, @NotNull Iterable<Enchantment> enchantments) {

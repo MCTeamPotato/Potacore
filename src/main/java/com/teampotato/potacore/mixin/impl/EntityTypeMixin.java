@@ -13,7 +13,7 @@ public abstract class EntityTypeMixin implements RegistryNameContainer {
 
     @Override
     public ResourceLocation getRegistryName() {
-        if (potacore$registryName == null) potacore$registryName = ForgeRegistries.ENTITY_TYPES.getKey((EntityType<?>) (Object) this);
+        if (potacore$registryName == null) potacore$registryName = ForgeRegistries.ENTITIES.getKey((EntityType<?>) (Object) this);
         return potacore$registryName;
     }
 }

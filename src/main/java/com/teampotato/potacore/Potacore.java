@@ -1,5 +1,6 @@
 package com.teampotato.potacore;
 
+import com.teampotato.potacore.data.EntitiesInChunkData;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,4 +9,8 @@ import org.apache.logging.log4j.Logger;
 public class Potacore {
     public static final String MOD_ID = "potacore";
     public static final Logger LOGGER = LogManager.getLogger(Potacore.class);
+
+    public Potacore() {
+        EntitiesInChunkData.register();
+    }
 }

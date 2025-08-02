@@ -15,8 +15,7 @@
     "EntityMixin",
     "impl.EntityTypeMixin",
     "impl.ItemMixin",
-    "ItemStackMixin",
-    "ServerLevelMixin"
+    "ItemStackMixin"
   ],
   "injectors": {
     "defaultRequire": 1

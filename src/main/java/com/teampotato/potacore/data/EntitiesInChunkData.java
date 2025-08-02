@@ -16,7 +16,7 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
@@ -143,13 +143,13 @@ public class EntitiesInChunkData {
     }
 
     private static void onJoin(@NotNull EntityJoinLevelEvent event) {
-        if (!event.isCanceled() && event.getEntity().level() instanceof ServerLevel level) {
+        if (!event.isCanceled() && event.getEntity().level instanceof ServerLevel level) {
             addEntity(level, event.getEntity());
         }
     }
 
     private static void onLeave(@NotNull EntityLeaveLevelEvent event) {
-        if (!event.isCanceled() && event.getEntity().level() instanceof ServerLevel level) {
+        if (!event.isCanceled() && event.getEntity().level instanceof ServerLevel level) {
             removeEntity(event.getEntity(), level);
         }
     }
@@ -157,20 +157,20 @@ public class EntitiesInChunkData {
     private static void onDie(@NotNull LivingDeathEvent event) {
         if (event.isCanceled()) return;
         LivingEntity entity = event.getEntity();
-        if (entity.level() instanceof ServerLevel level) {
+        if (entity.level instanceof ServerLevel level) {
             removeEntity(entity, level);
         }
     }
 
     private static void onTravel(@NotNull EntityTravelToDimensionEvent event) {
-        if (!event.isCanceled() && event.getEntity().level() instanceof ServerLevel level) {
+        if (!event.isCanceled() && event.getEntity().level instanceof ServerLevel level) {
             removeEntity(event.getEntity(), level);
         }
     }
 
-    private static void onDespawn(MobSpawnEvent.@NotNull AllowDespawn event) {
+    private static void onDespawn(LivingSpawnEvent.@NotNull AllowDespawn event) {
         if (event.getResult().equals(Event.Result.DENY)) return;
-        if (event.getEntity().level() instanceof ServerLevel level) {
+        if (event.getEntity().level instanceof ServerLevel level) {
             removeEntity(event.getEntity(), level);
         }
     }
